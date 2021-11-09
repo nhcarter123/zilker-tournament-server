@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": false,
+    "removeComments": true,
+    "noEmitOnError": true,
+    "alwaysStrict": false,
+    "noImplicitAny": true
+  },
+}
