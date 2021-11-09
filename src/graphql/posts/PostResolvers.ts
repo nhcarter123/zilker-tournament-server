@@ -7,9 +7,10 @@ type FindOnePost = {
   id: string,
 };
 
-type ConnectionArgs = {
+// todo move
+export type ConnectionArgs = {
   search: string,
-  after: string,
+  after: number,
   first: number,
 };
 
@@ -18,11 +19,11 @@ type PostArgs = {
   description: string,
 };
 
-const resolvers: Object = {
+const resolvers = {
   Post: {
     user: async ({ user }: PostType) => await UserModel.findOne({ _id: user }),
   },
-  post: async (obj: PostType, args: FindOnePost, context: Context): Promise<?PostType> => {
+  post: async (obj: PostType, args: FindOnePost, context: Context): Promise<PostType> => {
     const { id } = args;
     const { user } = context;
 
@@ -30,10 +31,9 @@ const resolvers: Object = {
       throw new Error('Unauthenticated');
     }
 
-    const post = await PostModel.findOne({ _id: id });
-    return post;
+    return PostModel.findOne({ _id: id });
   },
-  postAdd: async (obj: PostType, args: PostArgs, context: Context): Promise<?PostType> => {
+  postAdd: async (obj: PostType, args: PostArgs, context: Context): Promise<PostType> => {
     const { title, description } = args;
     const { user } = context;
 
@@ -51,9 +51,9 @@ const resolvers: Object = {
 
     const { _id } = post;
 
-    return await PostModel.findOne({ _id });
+    return PostModel.findOne({ _id });
   },
-  userPosts: async (args: ConnectionArgs, userId: string): PostConnection => {
+  userPosts: async (args: ConnectionArgs, userId: string): Promise<PostConnection> => {
     const { search, after, first } = args;
 
     if (!userId) {
@@ -78,11 +78,11 @@ const resolvers: Object = {
         .limit(first);
 
     return {
-      count: PostModel.count(),
-      posts,
+      count: await PostModel.count(),
+      posts: await posts,
     };
   },
-  posts: async (obj: PostType, args: ConnectionArgs, context: Context): PostConnection => {
+  posts: async (obj: PostType, args: ConnectionArgs, context: Context): Promise<PostConnection> => {
     const { search, after, first } = args;
     const { user } = context;
 
@@ -105,8 +105,8 @@ const resolvers: Object = {
         .limit(first);
 
     return {
-      count: PostModel.count(),
-      posts,
+      count: await PostModel.count(),
+      posts: await posts,
     };
   },
 };

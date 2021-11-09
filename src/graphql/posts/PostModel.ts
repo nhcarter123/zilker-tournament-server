@@ -1,33 +1,33 @@
-import mongoose from 'mongoose';
+import * as mongoose from 'mongoose';
 
 const { ObjectId } = mongoose.Schema.Types;
 
-const Schema: mongoose.SchemaType = mongoose.Schema(
+const Schema: mongoose.Schema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true,
+      required: true
     },
     description: {
       type: String,
-      required: true,
+      required: true
     },
     user: {
       type: ObjectId,
-      ref: 'User',
+      ref: 'User'
     },
     active: {
       type: Boolean,
-      default: true,
-    },
+      default: true
+    }
   },
   {
     collection: 'post',
     timestamps: {
       createdAt: 'createdAt',
-      updatedAt: 'updatedAt',
-    },
-  },
+      updatedAt: 'updatedAt'
+    }
+  }
 );
 
 export default mongoose.model('Post', Schema);

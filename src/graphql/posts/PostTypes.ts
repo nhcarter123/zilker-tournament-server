@@ -1,19 +1,19 @@
-// @flow
 import { gql } from 'apollo-server';
+import { DocumentNode } from 'graphql';
 
 export type PostType = {
-  _id: string,
-  title: string,
-  description: string,
-  user: string,
+  _id: string;
+  title: string;
+  description: string;
+  user: string;
 };
 
 export type PostConnection = {
-  count: number,
-  posts: Array<PostType>,
+  count: number;
+  posts: Array<PostType>;
 };
 
-const postType: string = gql`
+const postType: DocumentNode = gql`
   type Post {
     _id: String
     title: String
