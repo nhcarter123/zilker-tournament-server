@@ -1,13 +1,11 @@
-import { generateToken } from '../utils';
-import { ConnectionArgs } from '../posts/PostResolvers';
 import UserModel from './UserModel';
-import type { UserAuth, User } from './UserTypes';
+import type { User } from './UserTypes';
 import type { Context } from '../TypeDefinitions';
 
-type UserAdd = {
-  email: string,
-  name: string,
-  password: string,
+type UpdateUserDetailsArgs = {
+  firstName: string,
+  lastName: string,
+  rating: number,
 };
 
 type FindOneUser = {
@@ -20,8 +18,16 @@ type UserList = {
 };
 
 const resolvers = {
-  me: (user: User, args: void, context: Context): User => context.user,
-  users: async (user: User, args: ConnectionArgs): Promise<UserList> => {
+  me: (_: void, args: void, context: Context): User => context.user,
+
+  updateUserDetails: async (_: void, {
+    args
+  }: {args: UpdateUserDetailsArgs}, context: Context): Promise<User> => {
+
+    return UserModel.findOneAndUpdate({_id: context.user.id}, args, { returnOriginal: false });
+  },
+
+  users: async (user: User, args: any): Promise<UserList> => {
     const { search, after, first } = args;
 
     const where = search
@@ -44,35 +50,6 @@ const resolvers = {
     const { id } = args;
 
     return UserModel.findOne({ _id: id });
-  },
-
-  addUser: async (obj: User, args: UserAdd): Promise<UserAuth> => {
-    const { email, name, password } = args;
-
-    if (!email || !name || !password) {
-      throw new Error('Please fill all the fields');
-    }
-
-    const checkEmail = UserModel.findOne({
-      email
-    });
-
-    if (!checkEmail) {
-      throw new Error('This email is already registered!');
-    }
-
-    const user = new UserModel({
-      name,
-      email,
-      password
-    });
-
-    await user.save();
-
-    return {
-      refreshToken: generateToken(user),
-      accessToken: generateToken(user)
-    };
   }
 };
 

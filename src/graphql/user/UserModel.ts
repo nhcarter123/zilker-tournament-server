@@ -17,13 +17,8 @@ const Schema = new mongoose.Schema(
     rating: {
       type: Number
     },
-    auth: {
-      accessToken: {
-        type: String
-      },
-      refreshToken: {
-        type: String
-      }
+    token: {
+      type: String
     }
   },
   {

@@ -1,6 +1,5 @@
 import userResolvers from './user/UserResolvers';
 import verificationCodeResolvers from './verificationCode/VerificationCodeResolvers';
-import postResolvers from './posts/PostResolvers';
 
 type ResolversType = {
   Query: Object;
@@ -11,15 +10,12 @@ const globalResolvers: ResolversType = {
   Query: {
     me: userResolvers.me,
     users: userResolvers.users,
-    user: userResolvers.user,
-    post: postResolvers.post,
-    posts: postResolvers.posts
+    user: userResolvers.user
   },
   Mutation: {
+    updateUserDetails: userResolvers.updateUserDetails,
     verifyCode: verificationCodeResolvers.verifyCode,
-    sendVerificationCode: verificationCodeResolvers.sendVerificationCode,
-    addUser: userResolvers.addUser,
-    postAdd: postResolvers.postAdd
+    sendVerificationCode: verificationCodeResolvers.sendVerificationCode
   }
 };
 

@@ -2,7 +2,7 @@ import VerificationCodeModel from './VerificationCodeModel';
 import UserModel from '../user/UserModel';
 import { User } from '../user/UserTypes';
 import * as randomize from 'randomatic';
-import { getUserAuth } from '../utils';
+import { generateToken } from '../utils';
 
 type VerifyCodeArgs = {
   code: number;
@@ -16,20 +16,22 @@ const resolvers = {
   verifyCode: async (_: void, { code }: VerifyCodeArgs): Promise<User> => {
     const verificationCode = await VerificationCodeModel.findOne({ code });
 
-    // todo remove
-    if (!verificationCode && false) {
+    if (!verificationCode) {
       throw new Error('Invalid!');
     }
 
-    const user = await UserModel.findOne({ phone: verificationCode.phone });
-    const auth = getUserAuth(user);
+    let user = await UserModel.findOne({
+      phone: verificationCode.phone
+    });
+
+    const token = generateToken(user?.phone || verificationCode.phone);
 
     if (user) {
-      await user.update({ auth });
+      await user.update({ token });
     } else {
-      const user = new UserModel({
+      user = new UserModel({
         phone: verificationCode.phone,
-        auth
+        token
       });
 
       await user.save();
@@ -37,6 +39,7 @@ const resolvers = {
 
     return user;
   },
+
   sendVerificationCode: async (
     _: void,
     { phone }: GetVerificationCodeArgs
