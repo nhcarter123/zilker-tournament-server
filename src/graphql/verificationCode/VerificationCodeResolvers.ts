@@ -1,11 +1,13 @@
 import VerificationCodeModel from './VerificationCodeModel';
 import UserModel from '../user/UserModel';
 import { User } from '../user/UserTypes';
-import * as randomize from 'randomatic';
+import { customAlphabet } from 'nanoid/non-secure';
 import { generateToken } from '../utils';
 
+const nanoid = customAlphabet('1234567890', 6)
+
 type VerifyCodeArgs = {
-  code: number;
+  code: string;
 };
 
 type GetVerificationCodeArgs = {
@@ -27,7 +29,7 @@ const resolvers = {
     const token = generateToken(user?.phone || verificationCode.phone);
 
     if (user) {
-      await user.update({ token });
+      await UserModel.updateOne({_id: user._id}, { token });
     } else {
       user = new UserModel({
         phone: verificationCode.phone,
@@ -44,7 +46,7 @@ const resolvers = {
     _: void,
     { phone }: GetVerificationCodeArgs
   ): Promise<boolean> => {
-    const code = randomize('0', 6);
+    const code = nanoid();
 
     const verificationCode = new VerificationCodeModel({
       phone,

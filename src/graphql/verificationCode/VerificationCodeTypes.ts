@@ -5,14 +5,14 @@ import * as mongoose from 'mongoose';
 export interface VerificationCode extends mongoose.Document {
   _id: string;
   phone: string;
-  code: number;
+  code: string;
 }
 
 const VerificationCodeType: DocumentNode = gql`
   type VerificationCode {
-    _id: String
-    phone: String
-    code: Int
+    _id: String!
+    phone: String!
+    code: String!
   }
 `;
 

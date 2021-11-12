@@ -1,5 +1,5 @@
 import * as mongoose from 'mongoose';
-import { User } from './UserTypes';
+import { Role, User } from './UserTypes';
 
 const Schema = new mongoose.Schema(
   {
@@ -19,6 +19,11 @@ const Schema = new mongoose.Schema(
     },
     token: {
       type: String
+    },
+    role: {
+      type: String,
+      required: true,
+      default: Role.player
     }
   },
   {

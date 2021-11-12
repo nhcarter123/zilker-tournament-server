@@ -9,7 +9,7 @@ const Schema = new mongoose.Schema(
       required: true
     },
     code: {
-      type: Number,
+      type: String,
       required: true
     }
   },
@@ -18,6 +18,6 @@ const Schema = new mongoose.Schema(
   }
 );
 
-Schema.index({ createdAt: 1 }, { expires: 60 });
+Schema.index({ createdAt: 1 }, { expires: 300 });
 
 export default mongoose.model<VerificationCode>('VerificationCode', Schema);

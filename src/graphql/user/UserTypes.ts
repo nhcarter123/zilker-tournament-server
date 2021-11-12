@@ -2,6 +2,11 @@ import { gql } from 'apollo-server';
 import { DocumentNode } from 'graphql';
 import * as mongoose from 'mongoose';
 
+export enum Role {
+  player = 'player',
+  admin = 'admin'
+}
+
 export interface User extends mongoose.Document {
   _id: string;
   firstName: string;
@@ -19,6 +24,12 @@ const userType: DocumentNode = gql`
     phone: String!
     rating: Int
     token: String
+    role: Role!
+  }
+
+  enum Role {
+    player
+    admin
   }
 
   type UserList {
