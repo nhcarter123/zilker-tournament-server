@@ -12,10 +12,12 @@ const globalResolvers: ResolversType = {
     me: userResolvers.me,
     getActiveTournament: tournamentResolvers.getActiveTournament,
     getTournaments: tournamentResolvers.getTournaments,
+    getTournament: tournamentResolvers.getTournament,
     users: userResolvers.users,
     user: userResolvers.user
   },
   Mutation: {
+    nextRound: tournamentResolvers.nextRound,
     joinTournament: tournamentResolvers.joinTournament,
     createTournament: tournamentResolvers.createTournament,
     updateUserDetails: userResolvers.updateUserDetails,

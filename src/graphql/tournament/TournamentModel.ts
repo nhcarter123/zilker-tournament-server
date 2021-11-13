@@ -1,6 +1,14 @@
 import * as mongoose from 'mongoose';
 import moment from 'moment';
-import { Tournament, TournamentStatus } from './TournamentTypes';
+import { RoundPreview, TournamentStatus } from './TournamentTypes';
+
+export interface TournamentMongo extends mongoose.Document {
+  name: string;
+  date: Date;
+  status: TournamentStatus;
+  players: string[];
+  rounds: RoundPreview[];
+}
 
 const Schema = new mongoose.Schema(
   {
@@ -26,7 +34,8 @@ const Schema = new mongoose.Schema(
     ],
     rounds: [
       {
-        complete: {
+        _id: false,
+        completed: {
           type: Boolean,
           required: true,
           default: false
@@ -49,4 +58,4 @@ const Schema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model<Tournament>('Tournaments', Schema);
+export default mongoose.model<TournamentMongo>('Tournaments', Schema);

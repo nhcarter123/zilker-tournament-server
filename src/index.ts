@@ -5,7 +5,7 @@ import globalQuery from './graphql/TypeDefinitions';
 import { getUser } from './graphql/auth';
 
 (async () => {
-  const info = await connect(process.env.DB_URI)
+  const info = await connect(process.env.DB_URI || '')
     .then(mongoose => mongoose.connections[0])
     .catch(error => {
       console.error(`Unable to connect to database: ${error}`);

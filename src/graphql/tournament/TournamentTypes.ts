@@ -1,7 +1,6 @@
 import { gql } from 'apollo-server';
 import { DocumentNode } from 'graphql';
-import * as mongoose from 'mongoose';
-import { User } from '../user/UserTypes';
+import { Match } from '../match/MatchTypes';
 
 export enum TournamentStatus {
   registration = 'registration',
@@ -9,32 +8,23 @@ export enum TournamentStatus {
   inactive = 'inactive'
 }
 
-export enum MatchResult {
-  whiteWon = 'whiteWon',
-  blackWon = 'blackWon',
-  draw = 'draw',
-  didNotStart = 'didNotStart'
-}
-
-export type Match = {
-  white: User;
-  black: User;
-  result: MatchResult;
-};
-
 export type Round = {
-  complete: boolean;
+  completed: boolean;
   matches: Match[];
 };
 
-export interface Tournament extends mongoose.Document {
-  _id: string;
+export type RoundPreview = {
+  completed: boolean;
+  matches: string[];
+};
+
+export type TournamentResponse = {
   name: string;
   date: Date;
   status: TournamentStatus;
   players: string[];
-  rounds: string[];
-}
+  rounds: RoundPreview[];
+};
 
 // export interface TournamentResult
 //   extends Omit<Tournament, 'players' | 'rounds'> {
@@ -63,13 +53,12 @@ const TournamentType: DocumentNode = gql`
     completed
   }
 
-  type Match {
-    white: User!
-    black: User!
-    result: MatchResult
+  type Round {
+    completed: Boolean!
+    matches: [Match!]!
   }
 
-  type Round {
+  type RoundPreview {
     completed: Boolean!
     matches: [String!]!
   }
@@ -80,7 +69,7 @@ const TournamentType: DocumentNode = gql`
     date: Date!
     status: TournamentStatus!
     players: [String!]!
-    rounds: [Round!]!
+    rounds: [RoundPreview!]!
   }
 `;
 

@@ -7,7 +7,7 @@ import type { User } from './user/UserTypes';
 import { JwtPayload } from 'jsonwebtoken';
 
 type GetUser = {
-  user: User,
+  user: User | null,
 };
 
 export const getUser = async (token: string): Promise<GetUser> => {
@@ -17,7 +17,7 @@ export const getUser = async (token: string): Promise<GetUser> => {
     };
   }
 
-  const decodedToken = jwt.verify(token.substring(7), process.env.SECRET) as JwtPayload;
+  const decodedToken = jwt.verify(token.substring(7), `${process.env.SECRET}`) as JwtPayload;
 
   const user = await UserModel.findOne({ phone: decodedToken.id });
 

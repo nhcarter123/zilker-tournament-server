@@ -3,7 +3,6 @@ import { DocumentNode } from 'graphql';
 import * as mongoose from 'mongoose';
 
 export interface VerificationCode extends mongoose.Document {
-  _id: string;
   phone: string;
   code: string;
 }

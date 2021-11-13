@@ -22,9 +22,11 @@ const resolvers = {
 
   updateUserDetails: async (_: void, {
     args
-  }: {args: UpdateUserDetailsArgs}, context: Context): Promise<User> => {
+  }: {args: UpdateUserDetailsArgs}, context: Context): Promise<boolean> => {
 
-    return UserModel.findOneAndUpdate({_id: context.user.id}, args, { returnOriginal: false });
+    await UserModel.findOneAndUpdate({_id: context.user.id}, args, { returnOriginal: false });
+
+    return true
   },
 
   users: async (user: User, args: any): Promise<UserList> => {
@@ -46,7 +48,7 @@ const resolvers = {
 
     return { users, count: await UserModel.count() };
   },
-  user: async (user: User, args: FindOneUser): Promise<User> => {
+  user: async (user: User, args: FindOneUser): Promise<User | null> => {
     const { id } = args;
 
     return UserModel.findOne({ _id: id });
