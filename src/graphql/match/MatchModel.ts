@@ -2,11 +2,13 @@ import * as mongoose from 'mongoose';
 import { MatchResult } from './MatchTypes';
 
 export interface MatchMongo extends mongoose.Document {
+  _id: string;
   white: string;
   black: string;
   whiteRating: number;
   blackRating: number;
-  result?: MatchResult;
+  result: MatchResult;
+  completed: boolean;
 }
 
 const Schema = new mongoose.Schema(
@@ -28,7 +30,14 @@ const Schema = new mongoose.Schema(
       required: true
     },
     result: {
-      type: String
+      type: String,
+      required: true,
+      default: MatchResult.didNotStart
+    },
+    completed: {
+      type: Boolean,
+      required: true,
+      default: false
     }
   },
   {

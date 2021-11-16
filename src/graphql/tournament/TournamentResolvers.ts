@@ -9,7 +9,7 @@ import { createNewRound, getPlayerStats } from './helpers';
 import UserModel from '../user/UserModel';
 import MatchModel from '../match/MatchModel';
 import { find } from 'lodash';
-import { Match } from '../match/MatchTypes';
+import { Match, MatchResult } from '../match/MatchTypes';
 
 type CreateTournamentArgs = {
   name: string;
@@ -22,6 +22,16 @@ type JoinTournamentArgs = {
 
 type GetTournamentArgs = {
   tournamentId: string;
+};
+
+type GetRoundArgs = {
+  tournamentId: string;
+  roundId: string;
+};
+
+type DeleteRoundArgs = {
+  tournamentId: string;
+  roundId: string;
 };
 
 type NextRoundArgs = {
@@ -80,18 +90,110 @@ const resolvers = {
     return true;
   },
 
-  nextRound: async (
+  getRound: async (
     _: void,
-    { tournamentId }: NextRoundArgs
-  ): Promise<boolean> => {
+    { tournamentId, roundId }: GetRoundArgs
+  ): Promise<Round | null> => {
+    // todo use context
     const tournament: TournamentMongo | null = await TournamentModel.findOne({
       _id: tournamentId
     });
 
     if (!tournament) {
-      throw new Error('Unknown tournament!');
+      throw new Error('Tournament not found!');
     }
 
+    const round = find(
+      tournament.rounds,
+      round => round._id.toString() === roundId
+    );
+
+    if (!round) {
+      throw new Error('Round not found!');
+    }
+
+    const matches = await MatchModel.find({ _id: { $in: round.matches } });
+
+    return {
+      _id: roundId,
+      completed: false,
+      matches
+    };
+  },
+
+  deleteRound: async (
+    _: void,
+    { tournamentId, roundId }: DeleteRoundArgs
+  ): Promise<boolean> => {
+    // todo use context
+    const tournament: TournamentMongo | null = await TournamentModel.findOne({
+      _id: tournamentId
+    });
+
+    if (!tournament) {
+      throw new Error('Tournament not found!');
+    }
+
+    const round = find(
+      tournament.rounds,
+      round => round._id.toString() === roundId
+    );
+
+    if (!round) {
+      throw new Error('Round not found!');
+    }
+
+    await MatchModel.deleteMany({ _id: { $in: round.matches } });
+
+    await TournamentModel.updateOne(
+      { _id: tournamentId },
+      { $pull: { rounds: { _id: round._id } } }
+    );
+
+    return true;
+  },
+
+  nextRound: async (
+    _: void,
+    { tournamentId }: NextRoundArgs
+  ): Promise<boolean> => {
+    // todo use context
+    const tournament: TournamentMongo | null = await TournamentModel.findOne({
+      _id: tournamentId
+    });
+
+    if (!tournament) {
+      throw new Error('Tournament not found!');
+    }
+
+    // add results to all of last round's matches if they have none
+    const index = tournament.rounds.length - 1;
+
+    if (index !== -1) {
+      const lastRoundsMatches = tournament.rounds[index].matches;
+
+      await MatchModel.updateMany(
+        {
+          $and: [
+            {
+              _id: { $in: lastRoundsMatches }
+            },
+            { result: { $exists: false } }
+          ]
+        },
+        { $set: { result: MatchResult.didNotStart } }
+      );
+
+      // complete all rounds
+      await MatchModel.updateMany(
+        {
+          _id: { $in: lastRoundsMatches }
+        },
+        { $set: { completed: true } }
+      );
+    }
+
+    // get all matches
     const matches = await MatchModel.find({
       _id: {
         $in: tournament.rounds.flatMap((round: RoundPreview) => round.matches)
@@ -100,10 +202,9 @@ const resolvers = {
 
     const rounds: Round[] = tournament.rounds.map((round: RoundPreview) => ({
       ...round,
-      matches: round.matches.map(_id =>
-        find(matches, match => match._id === _id)
-      ) as Match[], // this typecast is a risk I'm willing to take
-      completed: true
+      matches: round.matches
+        .map(_id => find(matches, match => match._id.toString() === _id))
+        .filter(v => v) as Match[]
     }));
 
     const players = await UserModel.find({
@@ -121,11 +222,17 @@ const resolvers = {
       matches: newMatches.map(match => match._id)
     };
 
-    rounds.push();
+    const oldRounds = tournament.rounds.map(round => ({
+      _id: round._id,
+      matches: round.matches,
+      completed: true
+    }));
 
     await TournamentModel.updateOne(
       { _id: tournamentId },
-      { rounds: [...tournament.rounds, newRoundPreview] }
+      {
+        rounds: [...oldRounds, newRoundPreview]
+      }
     );
 
     return true;

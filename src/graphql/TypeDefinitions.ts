@@ -13,20 +13,30 @@ export type Context = {
 const queryTypes: DocumentNode = gql`
   type Query {
     me: User
+    getUser(userId: ID!): User
+      
     getActiveTournament: Tournament
     getTournaments: [Tournament!]!
-    getTournament(tournamentId: String!): Tournament
-    users(search: String, first: Int!, after: Int): UserList
-    user(id: ID!): User
+    getTournament(tournamentId: ID!): Tournament
+      
+    getMatch(matchId: ID!): Match
+    getMyMatch: Match
+    getRound(tournamentId: ID!, roundId: ID!): Round
   }
 
   type Mutation {
-    nextRound(tournamentId: String!): Boolean!
-    joinTournament(tournamentId: String!, userId: String!): Boolean!
+    nextRound(tournamentId: ID!): Boolean!
+    deleteRound(tournamentId: ID!, roundId: ID!): Boolean!
+    joinTournament(tournamentId: ID!, userId: ID!): Boolean!
     createTournament(name: String!): Boolean!
-    updateUserDetails(args: UpdateUserDetailsArgs!): Boolean!
+      
+    updateUserDetails(payload: UpdateUserDetailsPayload!): Boolean!
+      
     verifyCode(code: String!): User
     sendVerificationCode(phone: String!): Boolean
+      
+    updateMatch(matchId: ID!, payload: UpdateMatchPayload!): Boolean!
+    deleteMatch(tournamentId: ID!, roundId: ID!, matchId: ID!): Boolean!
   }
 `;
 

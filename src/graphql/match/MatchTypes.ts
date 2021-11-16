@@ -1,6 +1,5 @@
 import { gql } from 'apollo-server';
 import { DocumentNode } from 'graphql';
-import { User } from '../user/UserTypes';
 
 export enum MatchResult {
   whiteWon = 'whiteWon',
@@ -9,27 +8,35 @@ export enum MatchResult {
   didNotStart = 'didNotStart'
 }
 
-export type MatchResponse = {
-  white: User;
-  black: User;
-  whiteRating: number;
-  blackRating: number;
-  result?: MatchResult;
-};
-
 export type Match = {
+  _id: string;
   white: string;
   black: string;
   whiteRating: number;
   blackRating: number;
-  result?: MatchResult;
+  result: MatchResult;
+  completed: boolean;
 };
 
 const matchType: DocumentNode = gql`
   type Match {
-    white: User!
-    black: User!
-    result: MatchResult
+    _id: String!
+    white: String!
+    black: String!
+    whiteRating: Int!
+    blackRating: Int!
+    result: MatchResult!
+    completed: Boolean!
+  }
+
+  type Round {
+    _id: ID!
+    completed: Boolean!
+    matches: [Match!]!
+  }
+
+  input UpdateMatchPayload {
+    result: MatchResult!
   }
 `;
 

@@ -4,7 +4,7 @@ import { User } from '../user/UserTypes';
 import { customAlphabet } from 'nanoid/non-secure';
 import { generateToken } from '../utils';
 
-const nanoid = customAlphabet('1234567890', 6)
+const nanoid = customAlphabet('1234567890', 4)
 
 type VerifyCodeArgs = {
   code: string;

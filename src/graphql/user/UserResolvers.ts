@@ -3,13 +3,13 @@ import type { User } from './UserTypes';
 import type { Context } from '../TypeDefinitions';
 
 type UpdateUserDetailsArgs = {
-  firstName: string,
-  lastName: string,
-  rating: number,
+  firstName?: string,
+  lastName?: string,
+  rating?: number,
 };
 
-type FindOneUser = {
-  id: string,
+type getUserArgs = {
+  userId: string,
 };
 
 type UserList = {
@@ -18,15 +18,11 @@ type UserList = {
 };
 
 const resolvers = {
+  // Query
   me: (_: void, args: void, context: Context): User => context.user,
 
-  updateUserDetails: async (_: void, {
-    args
-  }: {args: UpdateUserDetailsArgs}, context: Context): Promise<boolean> => {
-
-    await UserModel.findOneAndUpdate({_id: context.user.id}, args, { returnOriginal: false });
-
-    return true
+  getUser: async (_: void, { userId }: getUserArgs): Promise<User | null> => {
+    return UserModel.findOne({ _id: userId });
   },
 
   users: async (user: User, args: any): Promise<UserList> => {
@@ -48,11 +44,16 @@ const resolvers = {
 
     return { users, count: await UserModel.count() };
   },
-  user: async (user: User, args: FindOneUser): Promise<User | null> => {
-    const { id } = args;
 
-    return UserModel.findOne({ _id: id });
-  }
+  // Mutation
+  updateUserDetails: async (_: void, {
+    args
+  }: {args: UpdateUserDetailsArgs}, context: Context): Promise<boolean> => {
+
+    await UserModel.findOneAndUpdate({_id: context.user.id}, args, { returnOriginal: false });
+
+    return true
+  },
 };
 
 export default resolvers;

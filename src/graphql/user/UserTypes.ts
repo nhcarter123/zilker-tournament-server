@@ -36,10 +36,10 @@ const userType: DocumentNode = gql`
     count: Int
   }
 
-  input UpdateUserDetailsArgs {
-    firstName: String!
-    lastName: String!
-    rating: Int!
+  input UpdateUserDetailsPayload {
+    firstName: String
+    lastName: String
+    rating: Int
   }
 `;
 

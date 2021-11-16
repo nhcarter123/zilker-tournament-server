@@ -9,11 +9,13 @@ export enum TournamentStatus {
 }
 
 export type Round = {
+  _id: string;
   completed: boolean;
   matches: Match[];
 };
 
 export type RoundPreview = {
+  _id: string;
   completed: boolean;
   matches: string[];
 };
@@ -24,6 +26,7 @@ export type TournamentResponse = {
   status: TournamentStatus;
   players: string[];
   rounds: RoundPreview[];
+  totalRounds: number;
 };
 
 // export interface TournamentResult
@@ -53,12 +56,8 @@ const TournamentType: DocumentNode = gql`
     completed
   }
 
-  type Round {
-    completed: Boolean!
-    matches: [Match!]!
-  }
-
   type RoundPreview {
+    _id: ID!
     completed: Boolean!
     matches: [String!]!
   }
@@ -70,6 +69,7 @@ const TournamentType: DocumentNode = gql`
     status: TournamentStatus!
     players: [String!]!
     rounds: [RoundPreview!]!
+    totalRounds: Int!
   }
 `;
 

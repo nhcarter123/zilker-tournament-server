@@ -8,6 +8,7 @@ export interface TournamentMongo extends mongoose.Document {
   status: TournamentStatus;
   players: string[];
   rounds: RoundPreview[];
+  totalRounds: number;
 }
 
 const Schema = new mongoose.Schema(
@@ -34,7 +35,6 @@ const Schema = new mongoose.Schema(
     ],
     rounds: [
       {
-        _id: false,
         completed: {
           type: Boolean,
           required: true,
@@ -47,7 +47,12 @@ const Schema = new mongoose.Schema(
           }
         ]
       }
-    ]
+    ],
+    totalRounds: {
+      type: Number,
+      required: true,
+      default: 5
+    }
   },
   {
     timestamps: {

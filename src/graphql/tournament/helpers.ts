@@ -1,18 +1,19 @@
+import mongoose from 'mongoose';
 import { Round } from './TournamentTypes';
 import { Match, MatchResult } from '../match/MatchTypes';
 import { User } from '../user/UserTypes';
 
 interface PlayerStat {
-    win: number;
-    loss: number;
-    draw: number;
-    bye: number;
-    score: number;
-    rating: number;
-    whitePlayed: number;
-    opponents: {
-      [id: string]: number;
-    };
+  win: number;
+  loss: number;
+  draw: number;
+  bye: number;
+  score: number;
+  rating: number;
+  whitePlayed: number;
+  opponents: {
+    [id: string]: number;
+  };
 }
 
 interface PlayerStats {
@@ -27,7 +28,7 @@ interface Candidate {
 }
 
 const sortCandidates = (a: Candidate, b: Candidate) =>
-  a.played - b.played || a.scoreDiff - b.scoreDiff || a.ratingDiff - b.ratingDiff
+  a.played - b.played || a.scoreDiff - b.scoreDiff || a.ratingDiff - b.ratingDiff;
 
 export const getPlayerStats = (rounds: Round[], players: User[]): PlayerStats => {
   const playerStats: PlayerStats = {};
@@ -62,26 +63,32 @@ export const getPlayerStats = (rounds: Round[], players: User[]): PlayerStats =>
           playerStats[match.black].draw += 1;
           break;
         case MatchResult.didNotStart:
-          playerStats[match.white].bye += 1;
-          playerStats[match.black].bye += 1;
+          if (match.white !== 'bye') {
+            playerStats[match.white].bye += 1;
+          }
+          if (match.black !== 'bye') {
+            playerStats[match.black].bye += 1;
+          }
           break;
       }
 
-      playerStats[match.white].rating = match.whiteRating;
-      playerStats[match.black].rating = match.blackRating;
+      if (match.black !== 'white' && match.black !== 'bye') {
+        playerStats[match.white].rating = match.whiteRating;
+        playerStats[match.black].rating = match.blackRating;
 
-      playerStats[match.white].whitePlayed += 1;
+        playerStats[match.white].whitePlayed += 1;
 
-      if (playerStats[match.white].opponents[match.black]) {
-        playerStats[match.white].opponents[match.black] += 1;
-      } else {
-        playerStats[match.white].opponents[match.black] = 1;
-      }
+        if (playerStats[match.white].opponents[match.black]) {
+          playerStats[match.white].opponents[match.black] += 1;
+        } else {
+          playerStats[match.white].opponents[match.black] = 1;
+        }
 
-      if (playerStats[match.black].opponents[match.white]) {
-        playerStats[match.black].opponents[match.white] += 1;
-      } else {
-        playerStats[match.black].opponents[match.white] = 1;
+        if (playerStats[match.black].opponents[match.white]) {
+          playerStats[match.black].opponents[match.white] += 1;
+        } else {
+          playerStats[match.black].opponents[match.white] = 1;
+        }
       }
     }
   }
@@ -102,7 +109,7 @@ const createCandidate = (player: PlayerStat, opponent: PlayerStat, opponentId: s
   const ratingDiff = Math.abs(player.rating - opponent.rating);
 
   return { played, scoreDiff, ratingDiff, id: opponentId };
-}
+};
 
 const matchPlayer = (playerId: string, stats: PlayerStats): Match => {
   const player = stats[playerId];
@@ -111,7 +118,7 @@ const matchPlayer = (playerId: string, stats: PlayerStats): Match => {
     const opponent = stats[opponentId];
 
     if (playerId !== opponentId) {
-      return createCandidate(player, opponent, opponentId)
+      return createCandidate(player, opponent, opponentId);
     }
   }).filter(v => v) as Candidate[];
 
@@ -128,17 +135,20 @@ const matchPlayer = (playerId: string, stats: PlayerStats): Match => {
   const white =
     whitePlayed === opponentWhitePlayed
       ? player.rating > opponent.rating
-        ? playerId
-        : opponentId
+      ? playerId
+      : opponentId
       : whitePlayed > opponentWhitePlayed
-        ? opponentId
-        : playerId;
+      ? opponentId
+      : playerId;
 
   return {
+    _id: new mongoose.Types.ObjectId().toString(),
     white,
     black: white === playerId ? opponentId : playerId,
     whiteRating: player.rating,
-    blackRating: opponent.rating
+    blackRating: opponent.rating,
+    result: MatchResult.didNotStart,
+    completed: false
   };
 };
 
@@ -147,9 +157,9 @@ export const createNewRound = (stats: PlayerStats): Round => {
 
   while (Object.keys(stats).length) {
     const sortedPlayers = Object.entries(stats)
-      .map(([id, value]) => ({id, score: value.score, rating: value.rating}))
+      .map(([id, value]) => ({ id, score: value.score, rating: value.rating, bye: value.bye }))
       .sort((a, b) =>
-        a.score - b.score || a.rating - b.rating)
+        a.bye - b.bye || a.score - b.score || a.rating - b.rating);
 
     // the empty string is just to make typescript happy. It should never be possible for sortedPlayers to be empty
     const playerId = sortedPlayers.pop()?.id || '';
@@ -163,11 +173,13 @@ export const createNewRound = (stats: PlayerStats): Round => {
       matches.push(match);
     } else {
       matches.push({
+        _id: new mongoose.Types.ObjectId().toString(),
         white: playerId,
         black: 'bye',
         whiteRating: stats[playerId].rating,
         blackRating: 0,
-        result: MatchResult.didNotStart
+        result: MatchResult.didNotStart,
+        completed: false
       });
 
       delete stats[playerId];
@@ -175,6 +187,7 @@ export const createNewRound = (stats: PlayerStats): Round => {
   }
 
   return {
+    _id: new mongoose.Types.ObjectId().toString(),
     completed: false,
     matches
   };
