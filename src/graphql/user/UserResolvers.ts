@@ -12,9 +12,9 @@ type getUserArgs = {
   userId: string,
 };
 
-type UserList = {
-  users: User[],
-  count: number,
+type GetUsersArgs = {
+  userIds: string[],
+  filterTerm?: string,
 };
 
 const resolvers = {
@@ -25,35 +25,28 @@ const resolvers = {
     return UserModel.findOne({ _id: userId });
   },
 
-  users: async (user: User, args: any): Promise<UserList> => {
-    const { search, after, first } = args;
-
-    const where = search
+  getUsers: async (_: void, { userIds, filterTerm }: GetUsersArgs): Promise<User[]> => {
+    const query = filterTerm
       ? {
+        _id: { $in: userIds },
         name: {
-          $regex: new RegExp(`^${search}`, 'ig')
+          $regex: new RegExp(`^${filterTerm}`, 'ig')
         }
       }
-      : {};
+      : { _id: { $in: userIds } };
 
-    const users = !after
-      ? await UserModel.find(where).limit(first)
-      : await UserModel.find(where)
-        .skip(after)
-        .limit(first);
-
-    return { users, count: await UserModel.count() };
+    return UserModel.find(query);
   },
 
   // Mutation
   updateUserDetails: async (_: void, {
     args
-  }: {args: UpdateUserDetailsArgs}, context: Context): Promise<boolean> => {
+  }: { args: UpdateUserDetailsArgs }, context: Context): Promise<boolean> => {
 
-    await UserModel.findOneAndUpdate({_id: context.user.id}, args, { returnOriginal: false });
+    await UserModel.findOneAndUpdate({ _id: context.user.id }, args, { returnOriginal: false });
 
-    return true
-  },
+    return true;
+  }
 };
 
 export default resolvers;

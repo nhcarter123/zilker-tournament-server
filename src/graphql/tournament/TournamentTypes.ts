@@ -3,9 +3,9 @@ import { DocumentNode } from 'graphql';
 import { Match } from '../match/MatchTypes';
 
 export enum TournamentStatus {
-  registration = 'registration',
-  completed = 'completed',
-  inactive = 'inactive'
+  created = 'created',
+  active = 'active',
+  completed = 'completed'
 }
 
 export type Round = {
@@ -51,8 +51,8 @@ const TournamentType: DocumentNode = gql`
   }
 
   enum TournamentStatus {
-    inactive
-    registration
+    created
+    active
     completed
   }
 

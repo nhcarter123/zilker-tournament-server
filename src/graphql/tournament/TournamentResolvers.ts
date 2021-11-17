@@ -1,14 +1,14 @@
 import TournamentModel, { TournamentMongo } from './TournamentModel';
 import {
-  TournamentStatus,
-  TournamentResponse,
+  Round,
   RoundPreview,
-  Round
+  TournamentResponse,
+  TournamentStatus
 } from './TournamentTypes';
 import { createNewRound, getPlayerStats } from './helpers';
 import UserModel from '../user/UserModel';
 import MatchModel from '../match/MatchModel';
-import { find } from 'lodash';
+import { find, uniq } from 'lodash';
 import { Match, MatchResult } from '../match/MatchTypes';
 
 type CreateTournamentArgs = {
@@ -16,6 +16,11 @@ type CreateTournamentArgs = {
 };
 
 type JoinTournamentArgs = {
+  tournamentId: string;
+  userId: string;
+};
+
+type KickPlayerArgs = {
   tournamentId: string;
   userId: string;
 };
@@ -34,23 +39,15 @@ type DeleteRoundArgs = {
   roundId: string;
 };
 
-type NextRoundArgs = {
+type completeRoundArgs = {
   tournamentId: string;
+  newRound: boolean;
 };
 
 const resolvers = {
   // Queries
   getActiveTournament: async (): Promise<TournamentMongo | null> => {
-    return TournamentModel.findOne({
-      $and: [
-        {
-          status: { $ne: TournamentStatus.completed }
-        },
-        {
-          status: { $ne: TournamentStatus.inactive }
-        }
-      ]
-    });
+    return TournamentModel.findOne({ status: TournamentStatus.active });
   },
 
   getTournament: async (
@@ -85,6 +82,18 @@ const resolvers = {
     await TournamentModel.updateOne(
       { _id: tournamentId },
       { $addToSet: { players: userId } }
+    );
+
+    return true;
+  },
+
+  kickPlayer: async (
+    _: void,
+    { tournamentId, userId }: KickPlayerArgs
+  ): Promise<boolean> => {
+    await TournamentModel.updateOne(
+      { _id: tournamentId },
+      { $pull: { players: userId } }
     );
 
     return true;
@@ -153,9 +162,9 @@ const resolvers = {
     return true;
   },
 
-  nextRound: async (
+  completeRound: async (
     _: void,
-    { tournamentId }: NextRoundArgs
+    { tournamentId, newRound }: completeRoundArgs
   ): Promise<boolean> => {
     // todo use context
     const tournament: TournamentMongo | null = await TournamentModel.findOne({
@@ -207,31 +216,42 @@ const resolvers = {
         .filter(v => v) as Match[]
     }));
 
+    const userIds = uniq(
+      rounds
+        .flatMap(round =>
+          round.matches.flatMap(match => [match.white, match.black])
+        )
+        .concat(tournament.players)
+        .filter(id => id !== 'bye')
+    );
+
     const players = await UserModel.find({
-      _id: { $in: tournament.players }
+      _id: { $in: userIds }
     });
 
     const stats = getPlayerStats(rounds, players);
 
-    const newRound = createNewRound(stats);
+    const nextRound = createNewRound(stats, tournament.players);
 
-    const newMatches = await MatchModel.insertMany(newRound.matches);
-
-    const newRoundPreview: RoundPreview = {
-      ...newRound,
-      matches: newMatches.map(match => match._id)
-    };
-
-    const oldRounds = tournament.rounds.map(round => ({
+    const updatedRounds = tournament.rounds.map(round => ({
       _id: round._id,
       matches: round.matches,
       completed: true
     }));
 
+    if (newRound) {
+      const newMatches = await MatchModel.insertMany(nextRound.matches);
+
+      updatedRounds.push({
+        ...nextRound,
+        matches: newMatches.map(match => match._id)
+      });
+    }
+
     await TournamentModel.updateOne(
       { _id: tournamentId },
       {
-        rounds: [...oldRounds, newRoundPreview]
+        rounds: updatedRounds
       }
     );
 

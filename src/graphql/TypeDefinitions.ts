@@ -14,6 +14,7 @@ const queryTypes: DocumentNode = gql`
   type Query {
     me: User
     getUser(userId: ID!): User
+    getUsers(userIds: [ID!]!, filterTerm: String): [User!]!
       
     getActiveTournament: Tournament
     getTournaments: [Tournament!]!
@@ -25,9 +26,10 @@ const queryTypes: DocumentNode = gql`
   }
 
   type Mutation {
-    nextRound(tournamentId: ID!): Boolean!
+    completeRound(tournamentId: ID!, newRound: Boolean!): Boolean!
     deleteRound(tournamentId: ID!, roundId: ID!): Boolean!
     joinTournament(tournamentId: ID!, userId: ID!): Boolean!
+    kickPlayer(tournamentId: ID!, userId: ID!): Boolean!
     createTournament(name: String!): Boolean!
       
     updateUserDetails(payload: UpdateUserDetailsPayload!): Boolean!

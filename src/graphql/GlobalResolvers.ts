@@ -13,6 +13,7 @@ const globalResolvers: ResolversType = {
     // User
     me: userResolvers.me,
     getUser: userResolvers.getUser,
+    getUsers: userResolvers.getUsers,
 
     // Tournament
     getActiveTournament: tournamentResolvers.getActiveTournament,
@@ -31,10 +32,11 @@ const globalResolvers: ResolversType = {
     sendVerificationCode: verificationCodeResolvers.sendVerificationCode,
 
     // Tournament
-    nextRound: tournamentResolvers.nextRound,
+    completeRound: tournamentResolvers.completeRound,
     deleteRound: tournamentResolvers.deleteRound,
     createTournament: tournamentResolvers.createTournament,
     joinTournament: tournamentResolvers.joinTournament,
+    kickPlayer: tournamentResolvers.kickPlayer,
 
     // Match
     updateMatch: matchResolvers.updateMatch,

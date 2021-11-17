@@ -20,7 +20,7 @@ const Schema = new mongoose.Schema(
     status: {
       type: String,
       required: true,
-      default: TournamentStatus.inactive
+      default: TournamentStatus.created
     },
     date: {
       type: Date,

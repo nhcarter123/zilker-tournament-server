@@ -64,10 +64,10 @@ export const getPlayerStats = (rounds: Round[], players: User[]): PlayerStats =>
           break;
         case MatchResult.didNotStart:
           if (match.white !== 'bye') {
-            playerStats[match.white].bye += 1;
+            playerStats[match.white].bye += 0.75;
           }
           if (match.black !== 'bye') {
-            playerStats[match.black].bye += 1;
+            playerStats[match.black].bye += 0.75;
           }
           break;
       }
@@ -104,7 +104,7 @@ export const getPlayerStats = (rounds: Round[], players: User[]): PlayerStats =>
 };
 
 const createCandidate = (player: PlayerStat, opponent: PlayerStat, opponentId: string) => {
-  const played = player.opponents[opponentId];
+  const played = player.opponents[opponentId] || 0;
   const scoreDiff = Math.abs(player.score - opponent.score);
   const ratingDiff = Math.abs(player.rating - opponent.rating);
 
@@ -152,8 +152,14 @@ const matchPlayer = (playerId: string, stats: PlayerStats): Match => {
   };
 };
 
-export const createNewRound = (stats: PlayerStats): Round => {
+export const createNewRound = (stats: PlayerStats, currentPlayers: string[]): Round => {
   const matches = [];
+
+  for (const id of Object.keys(stats)) {
+    if (!currentPlayers.includes(id)) {
+      delete stats[id]
+    }
+  }
 
   while (Object.keys(stats).length) {
     const sortedPlayers = Object.entries(stats)
