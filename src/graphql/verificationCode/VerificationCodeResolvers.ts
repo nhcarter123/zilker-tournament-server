@@ -1,3 +1,4 @@
+import twilio from 'twilio'
 import VerificationCodeModel from './VerificationCodeModel';
 import UserModel from '../user/UserModel';
 import { User } from '../user/UserTypes';
@@ -54,6 +55,19 @@ const resolvers = {
     });
 
     await verificationCode.save();
+
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    const twilioPhone = process.env.TWILIO_PHONE;
+    const client = twilio(accountSid, authToken);
+
+    // send text message
+    await client.messages
+      .create({
+        body: `Verification code: ${code}. Zilker Park Chess.`,
+        from: twilioPhone,
+        to: phone
+      })
 
     return true;
   }

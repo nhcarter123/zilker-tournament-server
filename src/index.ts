@@ -20,7 +20,6 @@ import { getUser } from './graphql/auth';
     resolvers: globalResolvers,
     typeDefs: globalQuery,
 
-    // todo can we improve this typing?
     context: async ({ req }) => {
       const token = req.headers.authorization || '';
       const { user } = await getUser(token);

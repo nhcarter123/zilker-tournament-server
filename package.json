@@ -1,26 +1,16 @@
 {
   "name": "zilker-tournament-server",
   "version": "1.0.0",
-  "description": "apollo server es6 boilerplate",
-  "author": "lXSPandora",
+  "description": "Zilker tournament web server",
+  "author": "nhcarter123",
   "license": "MIT",
-  "type": "module",
   "private": true,
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
     "@types/graphql": "^14.5.0",
     "@types/jsonwebtoken": "^8.5.5",
     "@types/mongoose": "^5.11.97",
-    "cross-conf-env": "^1.1.2",
-    "eslint": "^5.0.1",
-    "eslint-config-airbnb": "^17.0.0",
-    "eslint-plugin-flowtype": "^2.49.3",
-    "eslint-plugin-import": "^2.13.0",
-    "flow-bin": "^0.77.0",
-    "lint-staged": "^7.2.0",
-    "pre-commit": "^1.2.2",
-    "prettier": "^1.13.7",
-    "prettier-eslint": "^8.8.2"
+    "prettier": "^1.13.7"
   },
   "dependencies": {
     "@types/lodash": "^4.14.176",
@@ -36,10 +26,11 @@
     "mongoose": "^6.0.12",
     "nanoid": "^3.1.30",
     "ts-node-dev": "^1.1.8",
+    "twilio": "^3.71.2",
     "typescript": "^4.4.4"
   },
   "scripts": {
     "start": "ts-node-dev src/index.ts",
-    "docker:up": "docker-compose up --build"
+    "build": "tsc"
   }
 }

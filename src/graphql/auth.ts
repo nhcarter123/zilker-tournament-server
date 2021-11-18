@@ -11,17 +11,17 @@ type GetUser = {
 };
 
 export const getUser = async (token: string): Promise<GetUser> => {
-  if (!token.length) {
+  try {
+    const decodedToken = jwt.verify(token.substring(7), `${process.env.SECRET}`) as JwtPayload;
+
+    const user = await UserModel.findOne({ phone: decodedToken.id });
+
+    return {
+      user
+    };
+  } catch (e) {
     return {
       user: null
-    };
+    }
   }
-
-  const decodedToken = jwt.verify(token.substring(7), `${process.env.SECRET}`) as JwtPayload;
-
-  const user = await UserModel.findOne({ phone: decodedToken.id });
-
-  return {
-    user
-  };
 };
