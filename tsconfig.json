@@ -4,6 +4,7 @@
     "module": "commonjs",
     "outDir": "build",
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "baseUrl": "src",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -11,10 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
   },
-  "paths": {
-    "*": ["types/*.d.ts"]
-  },
   "include": [
-    "src"
+    "src", "./package.json"
   ]
 }

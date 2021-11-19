@@ -30,7 +30,8 @@
     "typescript": "^4.4.4"
   },
   "scripts": {
-    "start": "ts-node-dev src/index.ts",
+    "start": "node server.js",
+    "start:dev": "ts-node-dev src/server.ts",
     "build": "tsc"
   }
 }
