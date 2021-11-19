@@ -2,7 +2,7 @@ import UserModel from './UserModel';
 import type { User } from './UserTypes';
 import type { Context } from '../TypeDefinitions';
 
-type UpdateUserDetailsArgs = {
+type UpdateUserDetailsPayload = {
   firstName?: string,
   lastName?: string,
   rating?: number,
@@ -40,10 +40,10 @@ const resolvers = {
 
   // Mutation
   updateUserDetails: async (_: void, {
-    args
-  }: { args: UpdateUserDetailsArgs }, context: Context): Promise<boolean> => {
+    payload
+  }: { payload: UpdateUserDetailsPayload }, context: Context): Promise<boolean> => {
 
-    await UserModel.findOneAndUpdate({ _id: context.user.id }, args, { returnOriginal: false });
+    await UserModel.findOneAndUpdate({ _id: context.user.id }, payload);
 
     return true;
   }
