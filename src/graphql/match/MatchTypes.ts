@@ -8,15 +8,20 @@ export enum MatchResult {
   didNotStart = 'didNotStart'
 }
 
-export type Match = {
+export interface Match {
   _id: string;
   white: string;
   black: string;
   whiteRating: number;
   blackRating: number;
+  boardNumber: number;
   result: MatchResult;
   completed: boolean;
-};
+}
+
+export interface WeightedMatch extends Match {
+  weight: number;
+}
 
 const matchType: DocumentNode = gql`
   type Match {
@@ -25,6 +30,7 @@ const matchType: DocumentNode = gql`
     black: String!
     whiteRating: Int!
     blackRating: Int!
+    boardNumber: Int!
     result: MatchResult!
     completed: Boolean!
   }

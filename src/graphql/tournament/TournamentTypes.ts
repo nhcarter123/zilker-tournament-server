@@ -8,6 +8,17 @@ export enum TournamentStatus {
   completed = 'completed'
 }
 
+export type Standing = {
+  _id: string;
+  userId: string;
+  position: number;
+  score: number;
+  win: number;
+  loss: number;
+  draw: number;
+  bye: number;
+};
+
 export type Round = {
   _id: string;
   completed: boolean;
@@ -27,6 +38,7 @@ export type TournamentResponse = {
   players: string[];
   rounds: RoundPreview[];
   totalRounds: number;
+  standings: Standing[];
 };
 
 // export interface TournamentResult
@@ -56,6 +68,17 @@ const TournamentType: DocumentNode = gql`
     completed
   }
 
+  type Standing {
+    _id: ID!
+    userId: String!
+    position: Int!
+    score: Float!
+    win: Int!
+    loss: Int!
+    draw: Int!
+    bye: Int!
+  }
+
   type RoundPreview {
     _id: ID!
     completed: Boolean!
@@ -70,6 +93,7 @@ const TournamentType: DocumentNode = gql`
     players: [String!]!
     rounds: [RoundPreview!]!
     totalRounds: Int!
+    standings: [Standing!]!
   }
 `;
 

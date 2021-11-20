@@ -7,6 +7,7 @@ export interface MatchMongo extends mongoose.Document {
   black: string;
   whiteRating: number;
   blackRating: number;
+  boardNumber: number;
   result: MatchResult;
   completed: boolean;
 }
@@ -26,6 +27,10 @@ const Schema = new mongoose.Schema(
       required: true
     },
     blackRating: {
+      type: Number,
+      required: true
+    },
+    boardNumber: {
       type: Number,
       required: true
     },

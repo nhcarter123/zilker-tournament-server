@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
-import { Round } from './TournamentTypes';
-import { Match, MatchResult } from '../match/MatchTypes';
+import { omit } from 'lodash';
+import { Round, Standing } from './TournamentTypes';
+import { MatchResult, WeightedMatch } from '../match/MatchTypes';
 import { User } from '../user/UserTypes';
 
 interface PlayerStat {
@@ -64,15 +65,15 @@ export const getPlayerStats = (rounds: Round[], players: User[]): PlayerStats =>
           break;
         case MatchResult.didNotStart:
           if (match.white !== 'bye') {
-            playerStats[match.white].bye += 0.75;
+            playerStats[match.white].bye += 1;
           }
           if (match.black !== 'bye') {
-            playerStats[match.black].bye += 0.75;
+            playerStats[match.black].bye += 1;
           }
           break;
       }
 
-      if (match.black !== 'white' && match.black !== 'bye') {
+      if (match.black !== 'bye' && match.black !== 'bye') {
         playerStats[match.white].rating = match.whiteRating;
         playerStats[match.black].rating = match.blackRating;
 
@@ -97,7 +98,7 @@ export const getPlayerStats = (rounds: Round[], players: User[]): PlayerStats =>
     const player = playerStats[playerId];
 
     playerStats[playerId].score =
-      player.win + player.draw - player.loss + player.bye;
+      player.win + (player.draw * 0.5) + (player.bye * 0.75);
   }
 
   return playerStats;
@@ -111,7 +112,7 @@ const createCandidate = (player: PlayerStat, opponent: PlayerStat, opponentId: s
   return { played, scoreDiff, ratingDiff, id: opponentId };
 };
 
-const matchPlayer = (playerId: string, stats: PlayerStats): Match => {
+const matchPlayer = (playerId: string, stats: PlayerStats): WeightedMatch => {
   const player = stats[playerId];
 
   const candidates: Candidate[] = Object.keys(stats).map(opponentId => {
@@ -144,20 +145,22 @@ const matchPlayer = (playerId: string, stats: PlayerStats): Match => {
   return {
     _id: new mongoose.Types.ObjectId().toString(),
     white,
+    boardNumber: 0,
     black: white === playerId ? opponentId : playerId,
     whiteRating: player.rating,
     blackRating: opponent.rating,
     result: MatchResult.didNotStart,
-    completed: false
+    completed: false,
+    weight: opponent.score + player.score
   };
 };
 
 export const createNewRound = (stats: PlayerStats, currentPlayers: string[]): Round => {
-  const matches = [];
+  let matches = [];
 
   for (const id of Object.keys(stats)) {
     if (!currentPlayers.includes(id)) {
-      delete stats[id]
+      delete stats[id];
     }
   }
 
@@ -184,6 +187,8 @@ export const createNewRound = (stats: PlayerStats, currentPlayers: string[]): Ro
         black: 'bye',
         whiteRating: stats[playerId].rating,
         blackRating: 0,
+        boardNumber: 0,
+        weight: 0,
         result: MatchResult.didNotStart,
         completed: false
       });
@@ -192,9 +197,28 @@ export const createNewRound = (stats: PlayerStats, currentPlayers: string[]): Ro
     }
   }
 
+  matches = matches.sort((a, b) => b.weight - a.weight).map((match, index) => omit({
+    ...match,
+    boardNumber: index + 1
+  }, 'weight'));
+
   return {
     _id: new mongoose.Types.ObjectId().toString(),
     completed: false,
     matches
   };
+};
+
+export const createStandings = (stats: PlayerStats): Standing[] => {
+  return Object.entries(stats).map(([userId, stat]) => ({
+    _id: new mongoose.Types.ObjectId().toString(),
+    userId,
+    position: 0,
+    score: stat.score,
+    win: stat.win,
+    loss: stat.loss,
+    draw: stat.draw,
+    bye: stat.bye
+  })).sort((a, b) => b.score - a.score)
+    .map((standing, index) => ({ ...standing, position: index + 1 }));
 };

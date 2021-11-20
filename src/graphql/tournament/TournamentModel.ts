@@ -1,6 +1,6 @@
 import * as mongoose from 'mongoose';
 import moment from 'moment';
-import { RoundPreview, TournamentStatus } from './TournamentTypes';
+import { RoundPreview, Standing, TournamentStatus } from './TournamentTypes';
 
 export interface TournamentMongo extends mongoose.Document {
   name: string;
@@ -8,6 +8,7 @@ export interface TournamentMongo extends mongoose.Document {
   status: TournamentStatus;
   players: string[];
   rounds: RoundPreview[];
+  standings: Standing[];
   totalRounds: number;
 }
 
@@ -46,6 +47,38 @@ const Schema = new mongoose.Schema(
             required: true
           }
         ]
+      }
+    ],
+    standings: [
+      {
+        userId: {
+          type: String,
+          required: true
+        },
+        position: {
+          type: Number,
+          required: true
+        },
+        score: {
+          type: Number,
+          required: true
+        },
+        win: {
+          type: Number,
+          required: true
+        },
+        loss: {
+          type: Number,
+          required: true
+        },
+        draw: {
+          type: Number,
+          required: true
+        },
+        bye: {
+          type: Number,
+          required: true
+        }
       }
     ],
     totalRounds: {

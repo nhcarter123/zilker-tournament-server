@@ -5,7 +5,7 @@ import {
   TournamentResponse,
   TournamentStatus
 } from './TournamentTypes';
-import { createNewRound, getPlayerStats } from './helpers';
+import { createNewRound, createStandings, getPlayerStats } from './helpers';
 import UserModel from '../user/UserModel';
 import MatchModel from '../match/MatchModel';
 import { find, uniq } from 'lodash';
@@ -154,9 +154,41 @@ const resolvers = {
 
     await MatchModel.deleteMany({ _id: { $in: round.matches } });
 
+    // todo abstract all this repeated code - had to do this for crunch
+    // get all matches
+    const matches = await MatchModel.find({
+      _id: {
+        $in: tournament.rounds.flatMap((round: RoundPreview) => round.matches)
+      }
+    });
+
+    const rounds: Round[] = tournament.rounds.map((round: RoundPreview) => ({
+      ...round,
+      matches: round.matches
+        .map(_id => find(matches, match => match._id.toString() === _id))
+        .filter(v => v) as Match[]
+    }));
+
+    const userIds = uniq(
+      rounds
+        .flatMap(round =>
+          round.matches.flatMap(match => [match.white, match.black])
+        )
+        .concat(tournament.players)
+        .filter(id => id !== 'bye')
+    );
+
+    const players = await UserModel.find({
+      _id: { $in: userIds }
+    });
+
+    const stats = getPlayerStats(rounds, players);
+
+    const standings = createStandings(stats);
+
     await TournamentModel.updateOne(
       { _id: tournamentId },
-      { $pull: { rounds: { _id: round._id } } }
+      { $pull: { rounds: { _id: round._id } }, standings }
     );
 
     return true;
@@ -231,6 +263,7 @@ const resolvers = {
 
     const stats = getPlayerStats(rounds, players);
 
+    const standings = createStandings(stats);
     const nextRound = createNewRound(stats, tournament.players);
 
     const updatedRounds = tournament.rounds.map(round => ({
@@ -251,7 +284,8 @@ const resolvers = {
     await TournamentModel.updateOne(
       { _id: tournamentId },
       {
-        rounds: updatedRounds
+        rounds: updatedRounds,
+        standings
       }
     );
 

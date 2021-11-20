@@ -4,7 +4,6 @@
     "module": "commonjs",
     "outDir": "build",
     "moduleResolution": "node",
-    "resolveJsonModule": true,
     "baseUrl": "src",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
@@ -13,6 +12,6 @@
     "noFallthroughCasesInSwitch": true,
   },
   "include": [
-    "src", "./package.json"
+    "src"
   ]
 }
