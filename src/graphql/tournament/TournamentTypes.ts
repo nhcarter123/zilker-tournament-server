@@ -39,6 +39,7 @@ export type TournamentResponse = {
   rounds: RoundPreview[];
   totalRounds: number;
   standings: Standing[];
+  isDeleted: boolean;
 };
 
 // export interface TournamentResult
@@ -94,6 +95,7 @@ const TournamentType: DocumentNode = gql`
     rounds: [RoundPreview!]!
     totalRounds: Int!
     standings: [Standing!]!
+    isDeleted: Boolean!
   }
 `;
 

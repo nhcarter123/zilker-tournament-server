@@ -15,6 +15,16 @@ type CreateTournamentArgs = {
   name: string;
 };
 
+type UpdateTournamentArgs = {
+  tournamentId: string;
+  payload: UpdateTournamentPayload;
+};
+
+type UpdateTournamentPayload = {
+  name?: string;
+  isDeleted?: boolean;
+};
+
 type JoinTournamentArgs = {
   tournamentId: string;
   userId: string;
@@ -58,7 +68,7 @@ const resolvers = {
   },
 
   getTournaments: async (): Promise<TournamentResponse[]> => {
-    return TournamentModel.find({});
+    return TournamentModel.find({ isDeleted: false });
   },
 
   // Mutations
@@ -71,6 +81,15 @@ const resolvers = {
     });
 
     await tournament.save();
+
+    return true;
+  },
+
+  updateTournament: async (
+    _: void,
+    { tournamentId, payload }: UpdateTournamentArgs
+  ): Promise<boolean> => {
+    await TournamentModel.findOneAndUpdate({ _id: tournamentId }, payload);
 
     return true;
   },

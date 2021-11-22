@@ -44,6 +44,11 @@ const matchType: DocumentNode = gql`
   input UpdateMatchPayload {
     result: MatchResult!
   }
+
+  input UpdateTournamentPayload {
+    name: String
+    isDeleted: Boolean
+  }
 `;
 
 export default matchType;

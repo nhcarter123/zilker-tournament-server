@@ -26,17 +26,20 @@ const queryTypes: DocumentNode = gql`
   }
 
   type Mutation {
+#   Tournament
     completeRound(tournamentId: ID!, newRound: Boolean!): Boolean!
     deleteRound(tournamentId: ID!, roundId: ID!): Boolean!
     joinTournament(tournamentId: ID!, userId: ID!): Boolean!
     kickPlayer(tournamentId: ID!, userId: ID!): Boolean!
     createTournament(name: String!): Boolean!
+    updateTournament(payload: UpdateTournamentPayload!): Boolean!
       
-    updateUserDetails(payload: UpdateUserDetailsPayload!): Boolean!
-      
+#   User
     verifyCode(code: String!): User
     sendVerificationCode(phone: String!): Boolean
-      
+    updateUserDetails(payload: UpdateUserDetailsPayload!): Boolean!
+
+      #   Matches
     updateMatch(matchId: ID!, payload: UpdateMatchPayload!): Boolean!
     deleteMatch(tournamentId: ID!, roundId: ID!, matchId: ID!): Boolean!
   }

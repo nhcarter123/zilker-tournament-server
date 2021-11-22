@@ -32,15 +32,15 @@ const globalResolvers: ResolversType = {
     sendVerificationCode: verificationCodeResolvers.sendVerificationCode,
 
     // Tournament
+    createTournament: tournamentResolvers.createTournament,
+    updateTournament: tournamentResolvers.updateTournament,
     completeRound: tournamentResolvers.completeRound,
     deleteRound: tournamentResolvers.deleteRound,
-    createTournament: tournamentResolvers.createTournament,
     joinTournament: tournamentResolvers.joinTournament,
     kickPlayer: tournamentResolvers.kickPlayer,
 
     // Match
-    updateMatch: matchResolvers.updateMatch,
-    deleteMatch: matchResolvers.deleteMatch
+    updateMatch: matchResolvers.updateMatch
   }
 };
 

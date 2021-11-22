@@ -1,7 +1,6 @@
 import type { Context } from '../TypeDefinitions';
 import { Match, MatchResult } from './MatchTypes';
 import MatchModel from './MatchModel';
-import TournamentModel, { TournamentMongo } from '../tournament/TournamentModel';
 
 type GetMatchArgs = {
   matchId: string
@@ -12,12 +11,6 @@ type UpdateMatchArgs = {
   payload: {
     result: MatchResult
   }
-}
-
-type DeleteMatchArgs = {
-  tournamentId: string;
-  roundId: string;
-  matchId: string;
 }
 
 const resolvers = {
@@ -50,32 +43,6 @@ const resolvers = {
     }
 
     await MatchModel.updateOne({ _id: matchId }, payload);
-
-    return true;
-  },
-
-  deleteMatch: async (_: void, { tournamentId, roundId, matchId }: DeleteMatchArgs): Promise<boolean> => {
-    // todo use context
-    const tournament: TournamentMongo | null = await TournamentModel.findOne({
-      _id: tournamentId
-    });
-
-    if (!tournament) {
-      throw new Error('Tournament not found!');
-    }
-
-    const match = await MatchModel.findOne({ _id: matchId });
-
-    if (!match) {
-      throw new Error('Match not found!');
-    }
-
-    await MatchModel.deleteOne({ _id: matchId });
-
-    await TournamentModel.updateOne(
-      { _id: tournamentId, 'rounds._id': roundId },
-      { $pull: { 'rounds.$.matches._id': matchId } }
-    );
 
     return true;
   }

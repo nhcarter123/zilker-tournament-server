@@ -10,6 +10,7 @@ export interface TournamentMongo extends mongoose.Document {
   rounds: RoundPreview[];
   standings: Standing[];
   totalRounds: number;
+  isDeleted: boolean;
 }
 
 const Schema = new mongoose.Schema(
@@ -85,7 +86,8 @@ const Schema = new mongoose.Schema(
       type: Number,
       required: true,
       default: 5
-    }
+    },
+    isDeleted: Boolean
   },
   {
     timestamps: {
