@@ -2,17 +2,19 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import * as jwt from 'jsonwebtoken';
-import UserModel from './user/UserModel';
-import type { User } from './user/UserTypes';
+import UserModel, { User } from './user/UserModel';
 import { JwtPayload } from 'jsonwebtoken';
 
 type GetUser = {
-  user: User | null,
+  user: User | null;
 };
 
 export const getUser = async (token: string): Promise<GetUser> => {
   try {
-    const decodedToken = jwt.verify(token.substring(7), `${process.env.SECRET}`) as JwtPayload;
+    const decodedToken = jwt.verify(
+      token.substring(7),
+      `${process.env.SECRET}`
+    ) as JwtPayload;
 
     const user = await UserModel.findOne({ phone: decodedToken.id });
 
@@ -22,6 +24,6 @@ export const getUser = async (token: string): Promise<GetUser> => {
   } catch (e) {
     return {
       user: null
-    }
+    };
   }
 };

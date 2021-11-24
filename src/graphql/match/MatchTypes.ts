@@ -10,10 +10,15 @@ export enum MatchResult {
 
 export interface Match {
   _id: string;
+  tournamentId: string;
   white: string;
   black: string;
   whiteRating: number;
   blackRating: number;
+  newWhiteRating?: number;
+  newBlackRating?: number;
+  whiteMatchesPlayed: number;
+  blackMatchesPlayed: number;
   boardNumber: number;
   result: MatchResult;
   completed: boolean;
@@ -26,10 +31,15 @@ export interface WeightedMatch extends Match {
 const matchType: DocumentNode = gql`
   type Match {
     _id: String!
+    tournamentId: String!
     white: String!
     black: String!
     whiteRating: Int!
     blackRating: Int!
+    newWhiteRating: Int
+    newBlackRating: Int
+    whiteMatchesPlayed: Int!
+    blackMatchesPlayed: Int!
     boardNumber: Int!
     result: MatchResult!
     completed: Boolean!

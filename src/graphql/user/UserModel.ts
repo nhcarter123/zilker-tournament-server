@@ -1,5 +1,16 @@
 import * as mongoose from 'mongoose';
-import { Role, User } from './UserTypes';
+import { Role } from './UserTypes';
+
+export interface User extends mongoose.Document {
+  _id: string;
+  firstName?: string;
+  lastName?: string;
+  phone: string;
+  rating: number;
+  matchesPlayed: number;
+  token?: string;
+  role: Role;
+}
 
 const Schema = new mongoose.Schema(
   {
@@ -14,8 +25,15 @@ const Schema = new mongoose.Schema(
       required: true,
       index: true // todo check this
     },
+    matchesPlayed: {
+      type: Number,
+      required: true,
+      default: 0
+    },
     rating: {
-      type: Number
+      type: Number,
+      required: true,
+      default: 1000
     },
     token: {
       type: String

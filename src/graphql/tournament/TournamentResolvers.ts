@@ -5,7 +5,11 @@ import {
   TournamentResponse,
   TournamentStatus
 } from './TournamentTypes';
-import { createNewRound, createStandings, getPlayerStats } from './helpers';
+import {
+  createNewRound,
+  createStandings,
+  getPlayerStats
+} from './helpers/pairingHelper';
 import UserModel from '../user/UserModel';
 import MatchModel from '../match/MatchModel';
 import { find, uniq } from 'lodash';
@@ -202,8 +206,21 @@ const resolvers = {
     });
 
     const stats = getPlayerStats(rounds, players);
-
     const standings = createStandings(stats);
+
+    await UserModel.bulkWrite(
+      Object.entries(stats).map(([userId, stat]) => ({
+        updateOne: {
+          filter: { _id: userId },
+          update: {
+            $set: {
+              rating: stat.rating,
+              matchesPlayed: stat.matchesPlayed
+            }
+          }
+        }
+      }))
+    );
 
     await TournamentModel.updateOne(
       { _id: tournamentId },
@@ -283,7 +300,7 @@ const resolvers = {
     const stats = getPlayerStats(rounds, players);
 
     const standings = createStandings(stats);
-    const nextRound = createNewRound(stats, tournament.players);
+    const nextRound = createNewRound(tournamentId, stats, tournament.players);
 
     const updatedRounds = tournament.rounds.map(round => ({
       _id: round._id,
@@ -299,6 +316,20 @@ const resolvers = {
         matches: newMatches.map(match => match._id)
       });
     }
+
+    await UserModel.bulkWrite(
+      Object.entries(stats).map(([userId, stat]) => ({
+        updateOne: {
+          filter: { _id: userId },
+          update: {
+            $set: {
+              rating: stat.rating,
+              matchesPlayed: stat.matchesPlayed
+            }
+          }
+        }
+      }))
+    );
 
     await TournamentModel.updateOne(
       { _id: tournamentId },

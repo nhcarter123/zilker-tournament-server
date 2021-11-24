@@ -1,5 +1,4 @@
-import UserModel from './UserModel';
-import type { User } from './UserTypes';
+import UserModel, { User } from './UserModel';
 import type { Context } from '../TypeDefinitions';
 
 type UpdateUserDetailsPayload = {

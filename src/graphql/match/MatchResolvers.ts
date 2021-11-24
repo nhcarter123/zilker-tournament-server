@@ -1,6 +1,7 @@
 import type { Context } from '../TypeDefinitions';
 import { Match, MatchResult } from './MatchTypes';
 import MatchModel from './MatchModel';
+import { getRating } from '../tournament/helpers/ratingHelper';
 
 type GetMatchArgs = {
   matchId: string
@@ -42,7 +43,17 @@ const resolvers = {
       throw new Error('Match not found!');
     }
 
-    await MatchModel.updateOne({ _id: matchId }, payload);
+    if (payload.result !== MatchResult.didNotStart) {
+      const newWhiteRating = getRating(match.whiteRating, match.blackRating, payload.result, match.whiteMatchesPlayed, true);
+      const newBlackRating = getRating(match.blackRating, match.whiteRating, payload.result, match.blackMatchesPlayed, false);
+
+      await MatchModel.updateOne({ _id: matchId }, { ...payload, newWhiteRating, newBlackRating });
+    } else {
+      await MatchModel.updateOne({ _id: matchId }, {
+        $set: { ...payload },
+        $unset: { newWhiteRating: '', newBlackRating: '' }
+      });
+    }
 
     return true;
   }

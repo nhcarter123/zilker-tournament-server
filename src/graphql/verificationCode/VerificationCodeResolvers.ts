@@ -1,7 +1,7 @@
 import twilio from 'twilio'
 import VerificationCodeModel from './VerificationCodeModel';
 import UserModel from '../user/UserModel';
-import { User } from '../user/UserTypes';
+import { User } from '../user/UserModel';
 import { customAlphabet } from 'nanoid/non-secure';
 import { generateToken } from '../utils';
 

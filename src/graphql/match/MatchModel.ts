@@ -3,10 +3,15 @@ import { MatchResult } from './MatchTypes';
 
 export interface MatchMongo extends mongoose.Document {
   _id: string;
+  tournamentId: string;
   white: string;
   black: string;
   whiteRating: number;
   blackRating: number;
+  newWhiteRating?: number;
+  newBlackRating?: number;
+  whiteMatchesPlayed: number;
+  blackMatchesPlayed: number;
   boardNumber: number;
   result: MatchResult;
   completed: boolean;
@@ -14,6 +19,10 @@ export interface MatchMongo extends mongoose.Document {
 
 const Schema = new mongoose.Schema(
   {
+    tournamentId: {
+      type: String,
+      required: true
+    },
     white: {
       type: String,
       required: true
@@ -29,6 +38,20 @@ const Schema = new mongoose.Schema(
     blackRating: {
       type: Number,
       required: true
+    },
+    whiteMatchesPlayed: {
+      type: Number,
+      required: true
+    },
+    blackMatchesPlayed: {
+      type: Number,
+      required: true
+    },
+    newWhiteRating: {
+      type: Number
+    },
+    newBlackRating: {
+      type: Number
     },
     boardNumber: {
       type: Number,
