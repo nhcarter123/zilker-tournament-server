@@ -208,6 +208,8 @@ const resolvers = {
     const stats = getPlayerStats(rounds, players);
     const standings = createStandings(stats);
 
+    // todo fix rating bug when all matches are gone
+
     await UserModel.bulkWrite(
       Object.entries(stats).map(([userId, stat]) => ({
         updateOne: {
@@ -300,7 +302,12 @@ const resolvers = {
     const stats = getPlayerStats(rounds, players);
 
     const standings = createStandings(stats);
-    const nextRound = createNewRound(tournamentId, stats, tournament.players);
+    const nextRound = createNewRound(
+      tournamentId,
+      stats,
+      tournament.players,
+      2
+    );
 
     const updatedRounds = tournament.rounds.map(round => ({
       _id: round._id,

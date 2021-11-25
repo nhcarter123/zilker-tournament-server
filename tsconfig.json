@@ -2,6 +2,9 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
+    "lib": [
+      "esnext"
+    ],
     "outDir": "build",
     "moduleResolution": "node",
     "baseUrl": "src",
@@ -10,8 +13,13 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
+    "allowJs": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
   },
   "include": [
     "src"
-  ]
+  ],
 }

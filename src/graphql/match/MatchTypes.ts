@@ -1,5 +1,6 @@
 import { gql } from 'apollo-server';
 import { DocumentNode } from 'graphql';
+import { User } from '../user/UserModel';
 
 export enum MatchResult {
   whiteWon = 'whiteWon',
@@ -24,8 +25,9 @@ export interface Match {
   completed: boolean;
 }
 
-export interface WeightedMatch extends Match {
-  weight: number;
+export interface MatchWithUserInfo extends Omit<Match, 'white' | 'black'> {
+  white: User | null;
+  black: User | null;
 }
 
 const matchType: DocumentNode = gql`
@@ -34,6 +36,22 @@ const matchType: DocumentNode = gql`
     tournamentId: String!
     white: String!
     black: String!
+    whiteRating: Int!
+    blackRating: Int!
+    newWhiteRating: Int
+    newBlackRating: Int
+    whiteMatchesPlayed: Int!
+    blackMatchesPlayed: Int!
+    boardNumber: Int!
+    result: MatchResult!
+    completed: Boolean!
+  }
+
+  type MatchWithUserInfo {
+    _id: String!
+    tournamentId: String!
+    white: User
+    black: User
     whiteRating: Int!
     blackRating: Int!
     newWhiteRating: Int

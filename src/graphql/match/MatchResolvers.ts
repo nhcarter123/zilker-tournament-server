@@ -1,7 +1,8 @@
 import type { Context } from '../TypeDefinitions';
-import { Match, MatchResult } from './MatchTypes';
+import { Match, MatchResult, MatchWithUserInfo } from './MatchTypes';
 import MatchModel from './MatchModel';
 import { getRating } from '../tournament/helpers/ratingHelper';
+import UserModel from '../user/UserModel';
 
 type GetMatchArgs = {
   matchId: string
@@ -31,8 +32,17 @@ const resolvers = {
     });
   },
 
-  getMatch: async (_: void, { matchId }: GetMatchArgs): Promise<Match | null> => {
-    return MatchModel.findOne({ _id: matchId });
+  getMatch: async (_: void, { matchId }: GetMatchArgs): Promise<MatchWithUserInfo | null> => {
+    const match = await MatchModel.findOne({ _id: matchId });
+
+    if (!match) {
+      throw new Error('Match not found!');
+    }
+
+    const white = await UserModel.findOne({ _id: match.white });
+    const black = await UserModel.findOne({ _id: match.black });
+
+    return { ...match.toObject(), white, black };
   },
 
   // Mutation

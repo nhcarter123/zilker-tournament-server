@@ -20,7 +20,7 @@ const queryTypes: DocumentNode = gql`
     getTournaments: [Tournament!]!
     getTournament(tournamentId: ID!): Tournament
 
-    getMatch(matchId: ID!): Match
+    getMatch(matchId: ID!): MatchWithUserInfo
     getMyMatch: Match
     getRound(tournamentId: ID!, roundId: ID!): Round
   }

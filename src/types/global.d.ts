@@ -1,4 +1,2 @@
-declare type Nullable<T> = T | null;
-declare type Maybe<T> = T | undefined;
-
-// declare module 'elo-rating';
+type Nullable<T> = T | null;
+type Maybe<T> = T | undefined;
