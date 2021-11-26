@@ -62,12 +62,16 @@ type completeRoundArgs = {
 const resolvers = {
   // Queries
   getActiveTournament: async (): Promise<TournamentMongo | null> => {
-    return TournamentModel.findOne({ status: TournamentStatus.active });
+    return TournamentModel.findOne({
+      status: TournamentStatus.active,
+      isDeleted: false
+    });
   },
 
   getUpcomingTournaments: async (): Promise<TournamentMongo[]> => {
     return TournamentModel.find({
       status: TournamentStatus.created,
+      isDeleted: false,
       date: {
         $gt: moment()
           .startOf('day')
