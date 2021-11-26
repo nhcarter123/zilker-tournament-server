@@ -87,7 +87,11 @@ const Schema = new mongoose.Schema(
       required: true,
       default: 5
     },
-    isDeleted: Boolean
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      required: true
+    }
   },
   {
     timestamps: {

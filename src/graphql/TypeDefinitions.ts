@@ -16,6 +16,7 @@ const queryTypes: DocumentNode = gql`
     getUser(userId: ID!): User
     getUsers(userIds: [ID!]!, filterTerm: String): [User!]!
 
+    getUpcomingTournaments: [Tournament!]!
     getActiveTournament: Tournament
     getTournaments: [Tournament!]!
     getTournament(tournamentId: ID!): Tournament

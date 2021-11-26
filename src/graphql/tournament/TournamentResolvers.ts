@@ -1,3 +1,5 @@
+import { find, uniq } from 'lodash';
+import moment from 'moment';
 import TournamentModel, { TournamentMongo } from './TournamentModel';
 import {
   Round,
@@ -12,7 +14,6 @@ import {
 } from './helpers/pairingHelper';
 import UserModel from '../user/UserModel';
 import MatchModel from '../match/MatchModel';
-import { find, uniq } from 'lodash';
 import { Match, MatchResult } from '../match/MatchTypes';
 
 type CreateTournamentArgs = {
@@ -62,6 +63,17 @@ const resolvers = {
   // Queries
   getActiveTournament: async (): Promise<TournamentMongo | null> => {
     return TournamentModel.findOne({ status: TournamentStatus.active });
+  },
+
+  getUpcomingTournaments: async (): Promise<TournamentMongo[]> => {
+    return TournamentModel.find({
+      status: TournamentStatus.created,
+      date: {
+        $gt: moment()
+          .startOf('day')
+          .toDate()
+      }
+    });
   },
 
   getTournament: async (
