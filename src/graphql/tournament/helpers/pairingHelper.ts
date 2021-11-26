@@ -247,7 +247,7 @@ export const createNewRound = (
     .sort((a, b) => b[0].score - a[0].score)
     .map(group => group.map(player => player.id));
 
-  const batchedGroups = batchGroups(groups, maxPunchdown);
+  const batchedGroups = batchGroups(groups, 2 * maxPunchdown);
 
   const parallelGroups = batchedGroups.map(group => swissSplit(group));
 
