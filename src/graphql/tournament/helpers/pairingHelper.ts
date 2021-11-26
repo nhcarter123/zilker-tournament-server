@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { chunk } from 'lodash';
+import { chunk, groupBy } from 'lodash';
 import { Round, Standing } from '../TournamentTypes';
 import { Match, MatchResult } from '../../match/MatchTypes';
 import { User } from '../../user/UserModel';
@@ -11,6 +11,7 @@ interface PlayerStat {
   bye: number;
   score: number;
   rating: number;
+  previousRating: number;
   matchesPlayed: number;
   whitePlayed: number;
   opponents: {
@@ -20,6 +21,18 @@ interface PlayerStat {
 
 interface PlayerStats {
   [id: string]: PlayerStat;
+}
+
+interface PlayerStub {
+  id: string;
+  score: number;
+  rating: number;
+}
+
+interface Candidate {
+  id: string;
+  index: number;
+  targetIndex: number;
 }
 
 export const getPlayerStats = (
@@ -35,6 +48,7 @@ export const getPlayerStats = (
       draw: 0,
       bye: 0,
       score: 0,
+      previousRating: player.rating,
       rating: player.rating,
       matchesPlayed: player.matchesPlayed,
       whitePlayed: 0,
@@ -69,10 +83,14 @@ export const getPlayerStats = (
       }
 
       if (match.black !== 'bye' && match.black !== 'bye') {
+        playerStats[match.white].previousRating = match.whiteRating;
+        playerStats[match.black].previousRating = match.blackRating;
+
         playerStats[match.white].rating =
           match.newWhiteRating || match.whiteRating;
         playerStats[match.black].rating =
           match.newBlackRating || match.blackRating;
+
         playerStats[match.white].matchesPlayed = match.whiteMatchesPlayed;
         playerStats[match.black].matchesPlayed = match.blackMatchesPlayed;
 
@@ -96,7 +114,8 @@ export const getPlayerStats = (
   for (const playerId of Object.keys(playerStats)) {
     const player = playerStats[playerId];
 
-    playerStats[playerId].score = player.win + player.draw * 0.5 + player.bye;
+    playerStats[playerId].score =
+      player.win + player.draw * 0.5 + player.bye * 0.5;
   }
 
   return playerStats;
@@ -155,7 +174,7 @@ const createMatch = (
     white,
     black,
     whiteRating: stats[white].rating,
-    blackRating: stats[white].rating,
+    blackRating: stats[black].rating,
     whiteMatchesPlayed: stats[white].matchesPlayed + 1,
     blackMatchesPlayed: stats[black].matchesPlayed + 1,
     boardNumber,
@@ -164,11 +183,46 @@ const createMatch = (
   };
 };
 
+const batchGroups = (groups: string[][], maxPunchdown: number) =>
+  groups.flatMap(group => chunk(group, maxPunchdown));
+
+const swissSplit = (group: string[]) => {
+  const halfLength = Math.ceil(group.length / 2);
+  const topPlayers = group.splice(0, halfLength);
+
+  return [topPlayers, group];
+};
+
+const fillGaps = (parallelGroups: string[][][]) => {
+  const filledGroups = [];
+
+  for (let i = 0; i < parallelGroups.length; i++) {
+    const groupA = parallelGroups[i][0] || [];
+    const groupB = parallelGroups[i][1] || [];
+
+    if (i < parallelGroups.length - 1) {
+      while (groupB.length < groupA.length) {
+        const nextGroupA = parallelGroups[i + 1][0] || [];
+
+        groupB.push(nextGroupA.shift() || '');
+      }
+    }
+
+    while (groupA.length < groupB.length) {
+      groupA.push(groupB.shift() || '');
+    }
+
+    filledGroups.push([groupA, groupB]);
+  }
+
+  return filledGroups;
+};
+
 export const createNewRound = (
   tournamentId: string,
   stats: PlayerStats,
   currentPlayers: string[],
-  splitCount: number
+  maxPunchdown: number
 ): Round => {
   for (const id of Object.keys(stats)) {
     if (!currentPlayers.includes(id)) {
@@ -178,69 +232,74 @@ export const createNewRound = (
 
   const byePlayer = findByePlayer(stats);
 
-  const sortedPlayers = Object.entries(stats)
+  const sortedPlayers: PlayerStub[] = Object.entries(stats)
     .map(([id, value]) => ({
       id,
       score: value.score,
-      rating: value.rating,
-      bye: value.bye
+      rating: value.rating
     }))
     .sort((a, b) => b.score - a.score || b.rating - a.rating)
     .filter(player => player.id !== byePlayer);
 
-  const totalGroups = 2 * splitCount;
-  const playerCount = sortedPlayers.length;
-  const groupSize = Math.floor(playerCount / totalGroups);
-  const remainder = playerCount % totalGroups;
+  const groups: string[][] = Object.values(
+    groupBy(sortedPlayers, player => player.score)
+  )
+    .sort((a, b) => b[0].score - a[0].score)
+    .map(group => group.map(player => player.id));
 
-  const groups = chunk(sortedPlayers.map(player => player.id), groupSize);
+  const batchedGroups = batchGroups(groups, maxPunchdown);
 
-  let groupA: string[][] = [];
-  let groupB: string[][] = [];
+  const parallelGroups = batchedGroups.map(group => swissSplit(group));
 
-  groups.forEach(
-    (group, index) =>
-      index % 2 === 0 ? groupA.push(group) : groupB.push(group)
+  const adjustedParallelGroups = fillGaps(parallelGroups).filter(
+    group => group[0].length !== 0
   );
 
-  if (remainder > 0) {
-    if (groupA.length > groupB.length) {
-      groupB.push([]);
-    }
+  let properOrder: string[] = [];
 
-    const lastA = groupA.pop() || [];
-    const lastB = groupB.pop() || [];
+  adjustedParallelGroups.forEach(parallelGroup => {
+    properOrder = properOrder.concat(parallelGroup[0]);
+  });
 
-    while (lastA.length > lastB.length) {
-      const worstPlayerInA = lastA.pop();
+  adjustedParallelGroups.forEach(parallelGroup => {
+    properOrder = properOrder.concat(parallelGroup[1]);
+  });
 
-      if (worstPlayerInA) {
-        lastB.splice(0, 0, worstPlayerInA);
+  const candidates: Candidate[] = properOrder.map((id, index) => ({
+    id,
+    index,
+    targetIndex:
+      index -
+      ((index >= properOrder.length / 2 ? 1 : -1) * properOrder.length) / 2
+  }));
+
+  let boardNumber = 0;
+  const matches: Match[] = [];
+
+  while (candidates.length > 0) {
+    const player = candidates.sort((a, b) => a.index - b.index).shift();
+
+    if (player) {
+      const opponent = candidates
+        .sort(
+          (a, b) =>
+            stats[a.id].opponents[player.id] -
+              stats[b.id].opponents[player.id] ||
+            Math.abs(a.index - player.targetIndex) -
+              Math.abs(b.index - player.targetIndex) ||
+            a.index - b.index
+        )
+        .shift();
+
+      if (opponent) {
+        boardNumber += 1;
+
+        matches.push(
+          createMatch(player.id, opponent.id, stats, boardNumber, tournamentId)
+        );
       }
     }
-
-    groupA = [...groupA, lastA];
-    groupB = [...groupB, lastB];
   }
-
-  const combinedA = groupA.flat();
-  const combinedB = groupB.flat();
-
-  const matches = combinedA
-    .map((playerId, index) => {
-      const player = stats[playerId];
-
-      for (let i = 0; i < combinedB.length; i++) {
-        const opponentId = combinedB[i];
-
-        // this only works correctly if rounds < total players which is a safe enough assumption for now
-        if (!player.opponents[opponentId]) {
-          combinedB.splice(i, 1);
-          return createMatch(playerId, opponentId, stats, index, tournamentId);
-        }
-      }
-    })
-    .flatMap(v => (v ? [v] : []));
 
   if (byePlayer) {
     matches.push({
@@ -252,7 +311,7 @@ export const createNewRound = (
       blackRating: 0,
       whiteMatchesPlayed: stats[byePlayer].matchesPlayed,
       blackMatchesPlayed: 0,
-      boardNumber: combinedA.length + 1,
+      boardNumber: boardNumber + 1,
       result: MatchResult.didNotStart,
       completed: false
     });
@@ -272,11 +331,12 @@ export const createStandings = (stats: PlayerStats): Standing[] => {
       userId,
       position: 0,
       score: stat.score,
+      rating: stat.rating,
       win: stat.win,
       loss: stat.loss,
       draw: stat.draw,
       bye: stat.bye
     }))
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => b.score - a.score || b.rating - a.rating)
     .map((standing, index) => ({ ...standing, position: index + 1 }));
 };

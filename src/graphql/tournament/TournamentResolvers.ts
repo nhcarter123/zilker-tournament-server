@@ -158,13 +158,17 @@ const resolvers = {
     { tournamentId, roundId }: DeleteRoundArgs
   ): Promise<boolean> => {
     // todo use context
-    const tournament: TournamentMongo | null = await TournamentModel.findOne({
-      _id: tournamentId
-    });
+    const tournamentModel: TournamentMongo | null = await TournamentModel.findOne(
+      {
+        _id: tournamentId
+      }
+    );
 
-    if (!tournament) {
+    if (!tournamentModel) {
       throw new Error('Tournament not found!');
     }
+
+    const tournament = tournamentModel.toObject();
 
     const round = find(
       tournament.rounds,
@@ -174,8 +178,6 @@ const resolvers = {
     if (!round) {
       throw new Error('Round not found!');
     }
-
-    await MatchModel.deleteMany({ _id: { $in: round.matches } });
 
     // todo abstract all this repeated code - had to do this for crunch
     // get all matches
@@ -189,7 +191,7 @@ const resolvers = {
       ...round,
       matches: round.matches
         .map(_id => find(matches, match => match._id.toString() === _id))
-        .filter(v => v) as Match[]
+        .flatMap(v => (v ? [v] : []))
     }));
 
     const userIds = uniq(
@@ -206,9 +208,6 @@ const resolvers = {
     });
 
     const stats = getPlayerStats(rounds, players);
-    const standings = createStandings(stats);
-
-    // todo fix rating bug when all matches are gone
 
     await UserModel.bulkWrite(
       Object.entries(stats).map(([userId, stat]) => ({
@@ -216,13 +215,20 @@ const resolvers = {
           filter: { _id: userId },
           update: {
             $set: {
-              rating: stat.rating,
-              matchesPlayed: stat.matchesPlayed
+              rating: stat.previousRating,
+              matchesPlayed: stat.matchesPlayed - 1
             }
           }
         }
       }))
     );
+
+    const updatedRounds = rounds.filter(
+      round => round._id.toString() !== roundId
+    );
+    const standings = createStandings(getPlayerStats(updatedRounds, players));
+
+    await MatchModel.deleteMany({ _id: { $in: round.matches } });
 
     await TournamentModel.updateOne(
       { _id: tournamentId },
@@ -306,7 +312,7 @@ const resolvers = {
       tournamentId,
       stats,
       tournament.players,
-      2
+      8
     );
 
     const updatedRounds = tournament.rounds.map(round => ({
