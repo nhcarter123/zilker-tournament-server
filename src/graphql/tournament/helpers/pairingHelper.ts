@@ -201,15 +201,17 @@ const fillGaps = (parallelGroups: string[][][]) => {
     const groupB = parallelGroups[i][1] || [];
 
     if (i < parallelGroups.length - 1) {
-      while (groupB.length < groupA.length) {
-        const nextGroupA = parallelGroups[i + 1][0] || [];
+      while (groupA.length !== groupB.length) {
+        while (groupB.length < groupA.length) {
+          const nextGroupA = parallelGroups[i + 1][0] || [];
 
-        groupB.push(nextGroupA.shift() || '');
+          groupB.push(nextGroupA.shift() || '');
+        }
+
+        while (groupA.length < groupB.length) {
+          groupA.push(groupB.shift() || '');
+        }
       }
-    }
-
-    while (groupA.length < groupB.length) {
-      groupA.push(groupB.shift() || '');
     }
 
     filledGroups.push([groupA, groupB]);
@@ -283,8 +285,8 @@ export const createNewRound = (
       const opponent = candidates
         .sort(
           (a, b) =>
-            stats[a.id].opponents[player.id] -
-              stats[b.id].opponents[player.id] ||
+            (stats[a.id].opponents[player.id] || 0) -
+              (stats[b.id].opponents[player.id] || 0) ||
             Math.abs(a.index - player.targetIndex) -
               Math.abs(b.index - player.targetIndex) ||
             a.index - b.index

@@ -1,10 +1,17 @@
 import { expect } from 'chai';
+
 import {
   createNewRound,
   getPlayerStats
 } from 'graphql/tournament/helpers/pairingHelper';
 import { User } from '../../user/UserModel';
 import { Round } from '../TournamentTypes';
+import { find, uniq } from 'lodash';
+import UserModel from '../../user/UserModel';
+import { RoundPreview } from '../TournamentTypes';
+import MatchModel from '../../match/MatchModel';
+import { Match } from '../../match/MatchTypes';
+import { connectToDb } from '../../../db';
 
 it('Should pair players', () => {
   const a = true;
@@ -23,6 +30,44 @@ it('Should pair players', () => {
 
   expect(a).to.be.equal(true);
 });
+
+it('This pulls data from a real example tournament', async () => {
+  await connectToDb();
+
+  const matches = await MatchModel.find({
+    _id: { $in: roundPreviews.flatMap(preview => preview.matches) }
+  });
+
+  const userIds = uniq(
+    matches
+      .flatMap(match => [match.white, match.black])
+      .concat(playerIds)
+      .filter(id => id !== 'bye')
+  );
+
+  const players = await UserModel.find({
+    _id: { $in: userIds }
+  });
+
+  const rounds = roundPreviews.map(preview => ({
+    ...preview,
+    matches: preview.matches.map(
+      id => find(matches, match => match._id.toString() === id) as Match
+    )
+  }));
+
+  const tournamentId = '123';
+  const stats = getPlayerStats(rounds, players);
+
+  const round = createNewRound(
+    tournamentId,
+    stats,
+    players.map(player => player._id.toString()),
+    2
+  );
+
+  console.log('done');
+}).timeout(9999999);
 
 const rounds: Round[] = [
   {
@@ -296,3 +341,116 @@ const players: User[] = [
     matchesPlayed: 0.0
   }
 ] as User[];
+
+const roundPreviews: RoundPreview[] = [
+  {
+    completed: true,
+    matches: [
+      '61a3ea6501fba45d60baa8ec',
+      '61a3ea6501fba45d60baa8ed',
+      '61a3ea6501fba45d60baa8ee',
+      '61a3ea6501fba45d60baa8ef',
+      '61a3ea6501fba45d60baa8f0',
+      '61a3ea6501fba45d60baa8f1',
+      '61a3ea6501fba45d60baa8f2',
+      '61a3ea6501fba45d60baa8f3',
+      '61a3ea6501fba45d60baa8f4',
+      '61a3ea6501fba45d60baa8f5',
+      '61a3ea6501fba45d60baa8f6'
+    ],
+    _id: '61a3ea6501fba45d60baa8f7'
+  },
+  {
+    completed: true,
+    matches: [
+      '61a3f01f01fba45d60bac7ee',
+      '61a3f01f01fba45d60bac7ef',
+      '61a3f01f01fba45d60bac7f0',
+      '61a3f01f01fba45d60bac7f1',
+      '61a3f01f01fba45d60bac7f2',
+      '61a3f01f01fba45d60bac7f3',
+      '61a3f01f01fba45d60bac7f4',
+      '61a3f01f01fba45d60bac7f5',
+      '61a3f01f01fba45d60bac7f6',
+      '61a3f01f01fba45d60bac7f7',
+      '61a3f01f01fba45d60bac7f8'
+    ],
+    _id: '61a3f01f01fba45d60bac7f9'
+  },
+  {
+    completed: true,
+    matches: [
+      '61a3f37a01fba45d60bad1af',
+      '61a3f37a01fba45d60bad1b0',
+      '61a3f37a01fba45d60bad1b1',
+      '61a3f37a01fba45d60bad1b2',
+      '61a3f37a01fba45d60bad1b3',
+      '61a3f37a01fba45d60bad1b4',
+      '61a3f37a01fba45d60bad1b5',
+      '61a3f37a01fba45d60bad1b6',
+      '61a3f37a01fba45d60bad1b7',
+      '61a3f37a01fba45d60bad1b8',
+      '61a3f37a01fba45d60bad1b9'
+    ],
+    _id: '61a3f37a01fba45d60bad1ba'
+  },
+  {
+    completed: true,
+    matches: [
+      '61a3f77e01fba45d60bade84',
+      '61a3f77e01fba45d60bade85',
+      '61a3f77e01fba45d60bade86',
+      '61a3f77e01fba45d60bade87',
+      '61a3f77e01fba45d60bade88',
+      '61a3f77e01fba45d60bade89',
+      '61a3f77e01fba45d60bade8a',
+      '61a3f77e01fba45d60bade8b',
+      '61a3f77e01fba45d60bade8c',
+      '61a3f77e01fba45d60bade8d',
+      '61a3f77e01fba45d60bade8e',
+      '61a3f77e01fba45d60bade8f'
+    ],
+    _id: '61a3f77e01fba45d60bade90'
+  }
+  // {
+  //   completed: true,
+  //   matches: [
+  //     '61a3fc2701fba45d60baf072',
+  //     '61a3fc2701fba45d60baf073',
+  //     '61a3fc2701fba45d60baf074',
+  //     '61a3fc2701fba45d60baf075',
+  //     '61a3fc2701fba45d60baf076',
+  //     '61a3fc2701fba45d60baf077',
+  //     '61a3fc2701fba45d60baf078',
+  //     '61a3fc2701fba45d60baf079',
+  //     '61a3fc2701fba45d60baf07a',
+  //     '61a3fc2701fba45d60baf07b',
+  //     '61a3fc2701fba45d60baf07c'
+  //   ],
+  //   _id: '61a3fc2701fba45d60baf07d'
+  // }
+];
+
+const playerIds = [
+  '61970827e15505949f03affe',
+  '619954b95832163ae37f9f74',
+  '61a3e0bd01fba45d60baa190',
+  '61a3e13401fba45d60baa1af',
+  '61a3e28a01fba45d60baa21b',
+  '61a3e29f01fba45d60baa22a',
+  '619957b35832163ae37fa053',
+  '619955405832163ae37f9fb2',
+  '61a3e62001fba45d60baa36d',
+  '61995aa55832163ae37fa12d',
+  '61995ab55832163ae37fa13d',
+  '61995b595832163ae37fa163',
+  '61a3e6d101fba45d60baa3de',
+  '619977c55832163ae38027c9',
+  '619958c15832163ae37fa094',
+  '619963385832163ae37fb28c',
+  '61a3e8b701fba45d60baa4c0',
+  '61a3eb1d01fba45d60baaf8c',
+  '619aac335832163ae3804faf',
+  '61a3e2ca01fba45d60baa24e',
+  '61a3f3e101fba45d60bad6fd'
+];

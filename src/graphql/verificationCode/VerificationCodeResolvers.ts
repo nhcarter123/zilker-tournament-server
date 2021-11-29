@@ -1,9 +1,9 @@
-import twilio from 'twilio'
 import VerificationCodeModel from './VerificationCodeModel';
 import UserModel from '../user/UserModel';
 import { User } from '../user/UserModel';
 import { customAlphabet } from 'nanoid/non-secure';
 import { generateToken } from '../utils';
+import { sendText } from './helpers/twilio';
 
 const nanoid = customAlphabet('1234567890', 4)
 
@@ -56,18 +56,7 @@ const resolvers = {
 
     await verificationCode.save();
 
-    const accountSid = process.env.TWILIO_ACCOUNT_SID;
-    const authToken = process.env.TWILIO_AUTH_TOKEN;
-    const twilioPhone = process.env.TWILIO_PHONE;
-    const client = twilio(accountSid, authToken);
-
-    // send text message
-    await client.messages
-      .create({
-        body: `Verification code: ${code}. Zilker Park Chess.`,
-        from: twilioPhone,
-        to: phone
-      })
+    await sendText(`Verification code: ${code}. Zilker Park Chess.`, phone)
 
     return true;
   }
