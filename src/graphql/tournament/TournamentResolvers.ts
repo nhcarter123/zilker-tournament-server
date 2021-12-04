@@ -322,13 +322,14 @@ const resolvers = {
     });
 
     const stats = getPlayerStats(rounds, players);
-
     const standings = createStandings(stats);
+    const maxPunchDown = Math.ceil(tournament.players.length / 6);
+
     const nextRound = createNewRound(
       tournamentId,
       stats,
       tournament.players,
-      8
+      maxPunchDown
     );
 
     const updatedRounds = tournament.rounds.map(round => ({
@@ -364,6 +365,7 @@ const resolvers = {
       { _id: tournamentId },
       {
         rounds: updatedRounds,
+        status: newRound ? TournamentStatus.active : TournamentStatus.completed,
         standings
       }
     );
