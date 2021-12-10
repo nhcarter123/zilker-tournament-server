@@ -90,7 +90,7 @@ const resolvers = {
         Key: context.user.photo,
       };
 
-      new Promise((resolve, reject) => {
+      await new Promise((resolve, reject) => {
         s3.deleteObject(deleteParams, (err: Error, data) => {
           if (err) {
             reject(err);

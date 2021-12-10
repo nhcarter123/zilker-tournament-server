@@ -15,6 +15,7 @@ import {
 import UserModel from '../user/UserModel';
 import MatchModel from '../match/MatchModel';
 import { Match, MatchResult } from '../match/MatchTypes';
+import { sendText } from '../verificationCode/helpers/twilio';
 
 type CreateTournamentArgs = {
   name: string;
@@ -57,6 +58,7 @@ type DeleteRoundArgs = {
 type completeRoundArgs = {
   tournamentId: string;
   newRound: boolean;
+  textAlert: boolean;
 };
 
 const resolvers = {
@@ -256,7 +258,7 @@ const resolvers = {
 
   completeRound: async (
     _: void,
-    { tournamentId, newRound }: completeRoundArgs
+    { tournamentId, newRound, textAlert }: completeRoundArgs
   ): Promise<boolean> => {
     // todo use context
     const tournament: TournamentMongo | null = await TournamentModel.findOne({
@@ -369,6 +371,17 @@ const resolvers = {
         standings
       }
     );
+
+    if (textAlert && newRound) {
+      players
+        .filter(player => tournament.players.includes(player._id))
+        .map(player =>
+          sendText(
+            `⚠🚨 Round ${updatedRounds.length} is starting 🚨⚠`,
+            player.phone
+          ).catch(e => console.log(e))
+        );
+    }
 
     return true;
   }
