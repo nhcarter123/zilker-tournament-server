@@ -12,6 +12,7 @@ const userType: DocumentNode = gql`
     firstName: String
     lastName: String
     phone: String!
+    photo: String
     rating: Int
     matchesPlayed: Int!
     token: String

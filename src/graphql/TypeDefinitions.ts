@@ -11,6 +11,14 @@ export type Context = {
 };
 
 const queryTypes: DocumentNode = gql`
+  scalar Upload
+
+  type File {
+    filename: String!
+    mimetype: String!
+    encoding: String!
+  }
+
   type Query {
     me: User
     getUser(userId: ID!): User
@@ -39,6 +47,8 @@ const queryTypes: DocumentNode = gql`
     verifyCode(code: String!): User
     sendVerificationCode(phone: String!): Boolean
     updateUserDetails(payload: UpdateUserDetailsPayload!): Boolean!
+    uploadPhoto(photo: Upload!): Boolean!
+    deletePhoto: Boolean!
 
     #   Matches
     updateMatch(matchId: ID!, payload: UpdateMatchPayload!): Boolean!

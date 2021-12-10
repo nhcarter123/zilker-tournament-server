@@ -6,6 +6,7 @@ export interface User extends mongoose.Document {
   firstName?: string;
   lastName?: string;
   phone: string;
+  photo?: string;
   rating: number;
   matchesPlayed: number;
   token?: string;
@@ -24,6 +25,9 @@ const Schema = new mongoose.Schema(
       type: String,
       required: true,
       index: true // todo check this
+    },
+    photo: {
+      type: String
     },
     matchesPlayed: {
       type: Number,

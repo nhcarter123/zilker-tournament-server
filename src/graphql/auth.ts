@@ -1,6 +1,3 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
-
 import * as jwt from 'jsonwebtoken';
 import UserModel, { User } from './user/UserModel';
 import { JwtPayload } from 'jsonwebtoken';

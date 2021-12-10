@@ -1,14 +1,17 @@
+import { GraphQLUpload } from 'graphql-upload';
 import userResolvers from './user/UserResolvers';
 import verificationCodeResolvers from './verificationCode/VerificationCodeResolvers';
 import tournamentResolvers from './tournament/TournamentResolvers';
 import matchResolvers from './match/MatchResolvers';
 
 type ResolversType = {
+  Upload: Object;
   Query: Object;
   Mutation: Object;
 };
 
 const globalResolvers: ResolversType = {
+  Upload: GraphQLUpload,
   Query: {
     // User
     me: userResolvers.me,
@@ -29,6 +32,8 @@ const globalResolvers: ResolversType = {
   Mutation: {
     // User
     updateUserDetails: userResolvers.updateUserDetails,
+    uploadPhoto: userResolvers.uploadPhoto,
+    deletePhoto: userResolvers.deletePhoto,
     verifyCode: verificationCodeResolvers.verifyCode,
     sendVerificationCode: verificationCodeResolvers.sendVerificationCode,
 
