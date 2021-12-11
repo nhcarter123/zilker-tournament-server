@@ -20,7 +20,7 @@ const resolvers = {
   getMyMatch: async (_: void, args: void, context: Context): Promise<Match | null> => {
     const user = context.user;
 
-    return MatchModel.findOne({
+    const match = await MatchModel.findOne({
       $and: [{
         completed: false
       }, {
@@ -30,6 +30,12 @@ const resolvers = {
         ]
       }]
     });
+
+    if (match?.white === 'bye' || match?.black === 'bye') {
+      return null
+    }
+
+    return match
   },
 
   getMatch: async (_: void, { matchId }: GetMatchArgs): Promise<MatchWithUserInfo | null> => {
@@ -41,6 +47,11 @@ const resolvers = {
 
     const white = await UserModel.findOne({ _id: match.white });
     const black = await UserModel.findOne({ _id: match.black });
+
+    // @ts-ignore - todo fix
+    if (white === 'bye' || black === 'bye' ) {
+      return null
+    }
 
     return { ...match.toObject(), white, black };
   },
