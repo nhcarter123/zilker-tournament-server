@@ -1,8 +1,10 @@
 import type { Context } from '../TypeDefinitions';
 import { Match, MatchResult, MatchWithUserInfo } from './MatchTypes';
-import MatchModel from './MatchModel';
+import MatchModel, { MatchMongo } from './MatchModel';
 import { getRating } from '../tournament/helpers/ratingHelper';
 import UserModel from '../user/UserModel';
+import pubsub  from '../../pubsub/pubsub';
+import { Subscription } from '../../pubsub/types';
 
 type GetMatchArgs = {
   matchId: string
@@ -32,10 +34,10 @@ const resolvers = {
     });
 
     if (match?.white === 'bye' || match?.black === 'bye') {
-      return null
+      return null;
     }
 
-    return match
+    return match;
   },
 
   getMatch: async (_: void, { matchId }: GetMatchArgs): Promise<MatchWithUserInfo | null> => {
@@ -49,8 +51,8 @@ const resolvers = {
     const black = await UserModel.findOne({ _id: match.black });
 
     // @ts-ignore - todo fix
-    if (white === 'bye' || black === 'bye' ) {
-      return null
+    if (white === 'bye' || black === 'bye') {
+      return null;
     }
 
     return { ...match.toObject(), white, black };
@@ -64,17 +66,25 @@ const resolvers = {
       throw new Error('Match not found!');
     }
 
+    let updatedMatch: Nullable<MatchMongo>;
+
     if (payload.result !== MatchResult.didNotStart) {
       const newWhiteRating = getRating(match.whiteRating, match.blackRating, payload.result, match.whiteMatchesPlayed, true);
       const newBlackRating = getRating(match.blackRating, match.whiteRating, payload.result, match.blackMatchesPlayed, false);
 
-      await MatchModel.updateOne({ _id: matchId }, { ...payload, newWhiteRating, newBlackRating });
+      updatedMatch = await MatchModel.findOneAndUpdate({ _id: matchId }, {
+        ...payload,
+        newWhiteRating,
+        newBlackRating
+      }, {new: true});
     } else {
-      await MatchModel.updateOne({ _id: matchId }, {
+      updatedMatch = await MatchModel.findOneAndUpdate({ _id: matchId }, {
         $set: { ...payload },
         $unset: { newWhiteRating: '', newBlackRating: '' }
-      });
+      }, {new: true});
     }
+
+    pubsub.publish(Subscription.MatchUpdated, { matchUpdated: updatedMatch?.toObject() });
 
     return true;
   }

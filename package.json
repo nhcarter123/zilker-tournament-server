@@ -13,14 +13,17 @@
     "@types/mongoose": "^5.11.97",
     "mocha": "^9.1.3",
     "prettier": "^1.13.7",
-    "ts-mocha": "^8.0.0"
+    "ts-mocha": "^8.0.0",
+    "ts-node-dev": "^1.1.8"
   },
   "dependencies": {
+    "@graphql-tools/schema": "^8.3.1",
     "@types/chai": "^4.2.22",
     "@types/graphql-upload": "^8.0.7",
     "@types/lodash": "^4.14.176",
     "@types/moment": "^2.13.0",
     "apollo-server": "^3.5.0",
+    "apollo-server-express": "^3.5.0",
     "aws-sdk": "^2.1046.0",
     "bcryptjs": "^2.4.3",
     "chai": "^4.3.4",
@@ -28,6 +31,8 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "graphql": "^16.0.1",
+    "graphql-mongoose-subscriptions": "^1.0.14",
+    "graphql-subscriptions": "^2.0.0",
     "graphql-upload": "^13.0.0",
     "jsonwebtoken": "^8.3.0",
     "lodash": "^4.17.21",
@@ -35,7 +40,7 @@
     "moment": "^2.29.1",
     "mongoose": "^6.0.12",
     "nanoid": "^3.1.30",
-    "ts-node-dev": "^1.1.8",
+    "subscriptions-transport-ws": "^0.11.0",
     "twilio": "^3.71.2",
     "typescript": "^4.5.2"
   },

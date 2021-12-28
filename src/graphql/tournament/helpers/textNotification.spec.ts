@@ -12,13 +12,16 @@ it('Should send all players an update about the tournament', async () => {
     models.map(model => model.phone)
   );
 
+  let count = 0;
+
   // for (const phone of phoneNumbers) {
   //   await sendText(
-  //     `The tournament has been postponed until tomorrow at 2:00PM. -Zilker Park Chess`,
+  //     `The tournament is canceled this week due to weather + sickness. -Zilker Park Chess`,
   //     phone
   //   );
   //   console.log(phone);
+  //   console.log(count++);
   // }
 
   console.log('done');
-}).timeout(60000);
+}).timeout(120000);

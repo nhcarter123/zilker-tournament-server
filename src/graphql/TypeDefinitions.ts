@@ -58,6 +58,17 @@ const queryTypes: DocumentNode = gql`
     updateMatch(matchId: ID!, payload: UpdateMatchPayload!): Boolean!
     deleteMatch(tournamentId: ID!, roundId: ID!, matchId: ID!): Boolean!
   }
+
+  type Subscription {
+    matchUpdated(matchIds: [ID!]!): Match
+    newRoundStarted: Boolean
+  }
+
+  schema {
+    query: Query
+    mutation: Mutation
+    subscription: Subscription
+  }
 `;
 
 const globalQuery: Array<DocumentNode> = [

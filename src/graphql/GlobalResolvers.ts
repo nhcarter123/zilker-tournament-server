@@ -3,11 +3,15 @@ import userResolvers from './user/UserResolvers';
 import verificationCodeResolvers from './verificationCode/VerificationCodeResolvers';
 import tournamentResolvers from './tournament/TournamentResolvers';
 import matchResolvers from './match/MatchResolvers';
+import pubsub from '../pubsub/pubsub';
+import { Subscription } from '../pubsub/types';
+import { withFilter } from 'graphql-subscriptions';
 
 type ResolversType = {
   Upload: Object;
   Query: Object;
   Mutation: Object;
+  Subscription: Object;
 };
 
 const globalResolvers: ResolversType = {
@@ -47,6 +51,18 @@ const globalResolvers: ResolversType = {
 
     // Match
     updateMatch: matchResolvers.updateMatch
+  },
+  Subscription: {
+    matchUpdated: {
+      subscribe: withFilter(
+        () => pubsub.asyncIterator(Subscription.MatchUpdated),
+        (payload, variables) =>
+          variables.matchIds.includes(payload.matchUpdated._id)
+      )
+    },
+    newRoundStarted: {
+      subscribe: () => pubsub.asyncIterator(Subscription.NewRoundStarted)
+    }
   }
 };
 

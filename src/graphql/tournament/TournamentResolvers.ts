@@ -16,6 +16,8 @@ import UserModel from '../user/UserModel';
 import MatchModel from '../match/MatchModel';
 import { Match, MatchResult } from '../match/MatchTypes';
 import { sendText } from '../verificationCode/helpers/twilio';
+import pubsub from '../../pubsub/pubsub';
+import { Subscription } from '../../pubsub/types';
 
 type CreateTournamentArgs = {
   name: string;
@@ -253,6 +255,8 @@ const resolvers = {
       { $pull: { rounds: { _id: round._id } }, standings }
     );
 
+    pubsub.publish(Subscription.NewRoundStarted, { newRoundStarted: true });
+
     return true;
   },
 
@@ -382,6 +386,8 @@ const resolvers = {
           ).catch(e => console.log(e))
         );
     }
+
+    pubsub.publish(Subscription.NewRoundStarted, { newRoundStarted: true });
 
     return true;
   }
