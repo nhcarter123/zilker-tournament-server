@@ -1,5 +1,5 @@
 import type { Context } from '../TypeDefinitions';
-import { Match, MatchResult, MatchWithUserInfo } from './MatchTypes';
+import { MatchResult, MatchWithUserInfo } from './MatchTypes';
 import MatchModel, { MatchMongo } from './MatchModel';
 import { getRating } from '../tournament/helpers/ratingHelper';
 import UserModel from '../user/UserModel';
@@ -19,7 +19,7 @@ type UpdateMatchArgs = {
 
 const resolvers = {
   // Query
-  getMyMatch: async (_: void, args: void, context: Context): Promise<Match | null> => {
+  getMyMatch: async (_: void, args: void, context: Context): Promise<Nullable<MatchWithUserInfo>> => {
     const user = context.user;
 
     const match = await MatchModel.findOne({
@@ -33,20 +33,29 @@ const resolvers = {
       }]
     });
 
-    if (match?.white === 'bye' || match?.black === 'bye') {
+    if (!match || match?.white === 'bye' || match?.black === 'bye') {
       return null;
     }
 
-    return match;
+    const white = await UserModel.findOne({ _id: match.white });
+    const black = await UserModel.findOne({ _id: match.black });
+
+    // @ts-ignore - todo fix
+    if (white === 'bye' || black === 'bye') {
+      return null;
+    }
+
+    return { ...match.toObject(), white, black };
   },
 
-  getMatch: async (_: void, { matchId }: GetMatchArgs): Promise<MatchWithUserInfo | null> => {
+  getMatch: async (_: void, { matchId }: GetMatchArgs): Promise<Nullable<MatchWithUserInfo>> => {
     const match = await MatchModel.findOne({ _id: matchId });
 
     if (!match) {
       throw new Error('Match not found!');
     }
 
+    // todo abstract duplication
     const white = await UserModel.findOne({ _id: match.white });
     const black = await UserModel.findOne({ _id: match.black });
 

@@ -30,7 +30,7 @@ const queryTypes: DocumentNode = gql`
     getTournament(tournamentId: ID!): Tournament
 
     getMatch(matchId: ID!): MatchWithUserInfo
-    getMyMatch: Match
+    getMyMatch: MatchWithUserInfo
     getRound(tournamentId: ID!, roundId: ID!): Round
   }
 
@@ -45,7 +45,10 @@ const queryTypes: DocumentNode = gql`
     joinTournament(tournamentId: ID!, userId: ID!): Boolean!
     kickPlayer(tournamentId: ID!, userId: ID!): Boolean!
     createTournament(name: String!): Boolean!
-    updateTournament(payload: UpdateTournamentPayload!): Boolean!
+    updateTournament(
+      tournamentId: ID!
+      payload: UpdateTournamentPayload!
+    ): Boolean!
 
     #   User
     verifyCode(code: String!): User
@@ -61,7 +64,7 @@ const queryTypes: DocumentNode = gql`
 
   type Subscription {
     matchUpdated(matchIds: [ID!]!): Match
-    newRoundStarted: Boolean
+    newRoundStarted(tournamentId: ID!): NewRoundStartedData
   }
 
   schema {

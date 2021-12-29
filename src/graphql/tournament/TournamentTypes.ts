@@ -56,6 +56,10 @@ export type TournamentResponse = {
 const TournamentType: DocumentNode = gql`
   scalar Date
 
+  type NewRoundStartedData {
+    tournamentId: String!
+  }
+
   enum MatchResult {
     whiteWon
     blackWon

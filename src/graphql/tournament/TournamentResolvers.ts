@@ -255,7 +255,9 @@ const resolvers = {
       { $pull: { rounds: { _id: round._id } }, standings }
     );
 
-    pubsub.publish(Subscription.NewRoundStarted, { newRoundStarted: true });
+    pubsub.publish(Subscription.NewRoundStarted, {
+      newRoundStarted: { tournamentId }
+    });
 
     return true;
   },
@@ -387,7 +389,9 @@ const resolvers = {
         );
     }
 
-    pubsub.publish(Subscription.NewRoundStarted, { newRoundStarted: true });
+    pubsub.publish(Subscription.NewRoundStarted, {
+      newRoundStarted: { tournamentId }
+    });
 
     return true;
   }

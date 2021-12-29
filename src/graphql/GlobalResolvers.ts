@@ -61,7 +61,11 @@ const globalResolvers: ResolversType = {
       )
     },
     newRoundStarted: {
-      subscribe: () => pubsub.asyncIterator(Subscription.NewRoundStarted)
+      subscribe: withFilter(
+        () => pubsub.asyncIterator(Subscription.NewRoundStarted),
+        (payload, variables) =>
+          variables.tournamentId === payload.newRoundStarted.tournamentId
+      )
     }
   }
 };
