@@ -60,6 +60,10 @@ const TournamentType: DocumentNode = gql`
     tournamentId: String!
   }
 
+  type JoinTournamentResult {
+    tournamentId: String!
+  }
+
   enum MatchResult {
     whiteWon
     blackWon

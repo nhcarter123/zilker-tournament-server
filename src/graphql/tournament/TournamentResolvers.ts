@@ -114,13 +114,13 @@ const resolvers = {
   joinTournament: async (
     _: void,
     { tournamentId, userId }: JoinTournamentArgs
-  ): Promise<boolean> => {
+  ): Promise<{ tournamentId: string }> => {
     await TournamentModel.updateOne(
       { _id: tournamentId },
       { $addToSet: { players: userId } }
     );
 
-    return true;
+    return { tournamentId };
   },
 
   kickPlayer: async (
