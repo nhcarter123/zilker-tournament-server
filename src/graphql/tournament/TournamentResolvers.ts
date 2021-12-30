@@ -1,5 +1,4 @@
 import { find, uniq } from 'lodash';
-import moment from 'moment';
 import TournamentModel, { TournamentMongo } from './TournamentModel';
 import {
   Round,
@@ -18,6 +17,7 @@ import { Match, MatchResult } from '../match/MatchTypes';
 import { sendText } from '../verificationCode/helpers/twilio';
 import pubsub from '../../pubsub/pubsub';
 import { Subscription } from '../../pubsub/types';
+import { Context } from '../TypeDefinitions';
 
 type CreateTournamentArgs = {
   name: string;
@@ -65,22 +65,15 @@ type completeRoundArgs = {
 
 const resolvers = {
   // Queries
-  getActiveTournament: async (): Promise<TournamentMongo | null> => {
+  getMyTournament: async (
+    _: void,
+    _args: void,
+    context: Context
+  ): Promise<Nullable<TournamentMongo>> => {
     return TournamentModel.findOne({
       status: TournamentStatus.active,
-      isDeleted: false
-    });
-  },
-
-  getUpcomingTournaments: async (): Promise<TournamentMongo[]> => {
-    return TournamentModel.find({
-      status: TournamentStatus.created,
       isDeleted: false,
-      date: {
-        $gt: moment()
-          .startOf('day')
-          .toDate()
-      }
+      players: { $in: [context.user._id] }
     });
   },
 
@@ -92,7 +85,7 @@ const resolvers = {
   },
 
   getTournaments: async (): Promise<TournamentResponse[]> => {
-    return TournamentModel.find({ isDeleted: false });
+    return TournamentModel.find({ isDeleted: false }).sort({ date: -1 });
   },
 
   // Mutations

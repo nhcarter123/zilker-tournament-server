@@ -23,8 +23,7 @@ const globalResolvers: ResolversType = {
     getUsers: userResolvers.getUsers,
 
     // Tournament
-    getUpcomingTournaments: tournamentResolvers.getUpcomingTournaments,
-    getActiveTournament: tournamentResolvers.getActiveTournament,
+    getMyTournament: tournamentResolvers.getMyTournament,
     getTournaments: tournamentResolvers.getTournaments,
     getTournament: tournamentResolvers.getTournament,
     getRound: tournamentResolvers.getRound,

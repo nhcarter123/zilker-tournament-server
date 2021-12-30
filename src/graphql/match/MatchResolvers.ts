@@ -2,7 +2,7 @@ import type { Context } from '../TypeDefinitions';
 import { MatchResult, MatchWithUserInfo } from './MatchTypes';
 import MatchModel, { MatchMongo } from './MatchModel';
 import { getRating } from '../tournament/helpers/ratingHelper';
-import UserModel from '../user/UserModel';
+import UserModel, { User } from '../user/UserModel';
 import pubsub  from '../../pubsub/pubsub';
 import { Subscription } from '../../pubsub/types';
 
@@ -15,6 +15,25 @@ type UpdateMatchArgs = {
   payload: {
     result: MatchResult
   }
+}
+
+const withUserInfo = async (match: Nullable<MatchMongo>) => {
+  if (!match) {
+    return null;
+  }
+
+  let white: Nullable<User> = null;
+  let black: Nullable<User> = null;
+
+  if (match?.white !== 'bye') {
+    white = await UserModel.findOne({ _id: match.white });
+  }
+
+  if (match?.black !== 'bye') {
+    black = await UserModel.findOne({ _id: match.black });
+  }
+
+  return { ...match.toObject(), white, black };
 }
 
 const resolvers = {
@@ -33,38 +52,13 @@ const resolvers = {
       }]
     });
 
-    if (!match || match?.white === 'bye' || match?.black === 'bye') {
-      return null;
-    }
-
-    const white = await UserModel.findOne({ _id: match.white });
-    const black = await UserModel.findOne({ _id: match.black });
-
-    // @ts-ignore - todo fix
-    if (white === 'bye' || black === 'bye') {
-      return null;
-    }
-
-    return { ...match.toObject(), white, black };
+    return withUserInfo(match)
   },
 
   getMatch: async (_: void, { matchId }: GetMatchArgs): Promise<Nullable<MatchWithUserInfo>> => {
     const match = await MatchModel.findOne({ _id: matchId });
 
-    if (!match) {
-      throw new Error('Match not found!');
-    }
-
-    // todo abstract duplication
-    const white = await UserModel.findOne({ _id: match.white });
-    const black = await UserModel.findOne({ _id: match.black });
-
-    // @ts-ignore - todo fix
-    if (white === 'bye' || black === 'bye') {
-      return null;
-    }
-
-    return { ...match.toObject(), white, black };
+    return withUserInfo(match)
   },
 
   // Mutation
