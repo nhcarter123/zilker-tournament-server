@@ -75,6 +75,8 @@ const matchType: DocumentNode = gql`
 
   input UpdateTournamentPayload {
     name: String
+    date: Date
+    status: TournamentStatus
     isDeleted: Boolean
   }
 `;

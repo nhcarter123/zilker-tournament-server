@@ -3,8 +3,12 @@ import { MatchResult, MatchWithUserInfo } from './MatchTypes';
 import MatchModel, { MatchMongo } from './MatchModel';
 import { getRating } from '../tournament/helpers/ratingHelper';
 import UserModel, { User } from '../user/UserModel';
-import pubsub  from '../../pubsub/pubsub';
+import pubsub from '../../pubsub/pubsub';
 import { Subscription } from '../../pubsub/types';
+
+type GetMyMatchArgs = {
+  tournamentId: string
+};
 
 type GetMatchArgs = {
   matchId: string
@@ -34,31 +38,29 @@ const withUserInfo = async (match: Nullable<MatchMongo>) => {
   }
 
   return { ...match.toObject(), white, black };
-}
+};
 
 const resolvers = {
   // Query
-  getMyMatch: async (_: void, args: void, context: Context): Promise<Nullable<MatchWithUserInfo>> => {
+  getMyMatch: async (_: void, { tournamentId }: GetMyMatchArgs, context: Context): Promise<Nullable<MatchWithUserInfo>> => {
     const user = context.user;
 
     const match = await MatchModel.findOne({
-      $and: [{
-        completed: false
-      }, {
-        $or: [
-          { white: user._id },
-          { black: user._id }
-        ]
-      }]
+      tournamentId,
+      completed: false,
+      $or: [
+        { white: user._id },
+        { black: user._id }
+      ]
     });
 
-    return withUserInfo(match)
+    return withUserInfo(match);
   },
 
   getMatch: async (_: void, { matchId }: GetMatchArgs): Promise<Nullable<MatchWithUserInfo>> => {
     const match = await MatchModel.findOne({ _id: matchId });
 
-    return withUserInfo(match)
+    return withUserInfo(match);
   },
 
   // Mutation
@@ -79,12 +81,12 @@ const resolvers = {
         ...payload,
         newWhiteRating,
         newBlackRating
-      }, {new: true});
+      }, { new: true });
     } else {
       updatedMatch = await MatchModel.findOneAndUpdate({ _id: matchId }, {
         $set: { ...payload },
         $unset: { newWhiteRating: '', newBlackRating: '' }
-      }, {new: true});
+      }, { new: true });
     }
 
     pubsub.publish(Subscription.MatchUpdated, { matchUpdated: updatedMatch?.toObject() });

@@ -30,6 +30,8 @@ type UpdateTournamentArgs = {
 
 type UpdateTournamentPayload = {
   name?: string;
+  date?: Date;
+  status?: TournamentStatus;
   isDeleted?: boolean;
 };
 
