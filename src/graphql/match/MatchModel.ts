@@ -1,20 +1,8 @@
 import * as mongoose from 'mongoose';
-import { MatchResult } from './MatchTypes';
+import { Match, MatchResult } from './MatchTypes';
 
-export interface MatchMongo extends mongoose.Document {
-  _id: string;
-  tournamentId: string;
-  white: string;
-  black: string;
-  whiteRating: number;
-  blackRating: number;
-  newWhiteRating?: number;
-  newBlackRating?: number;
-  whiteMatchesPlayed: number;
-  blackMatchesPlayed: number;
-  boardNumber: number;
-  result: MatchResult;
-  completed: boolean;
+export interface MatchMongo extends Omit<Match, '_id'>, mongoose.Document {
+  _id: mongoose.Types.ObjectId;
 }
 
 const Schema = new mongoose.Schema(

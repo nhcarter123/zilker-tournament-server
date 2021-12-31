@@ -63,7 +63,7 @@ const queryTypes: DocumentNode = gql`
 
   type Subscription {
     matchUpdated(matchIds: [ID!]!): Match
-    newRoundStarted(tournamentId: ID!): NewRoundStartedData
+    tournamentUpdated(tournamentId: ID!): TournamentUpdateResult
   }
 
   schema {
@@ -71,7 +71,7 @@ const queryTypes: DocumentNode = gql`
     mutation: Mutation
     subscription: Subscription
   }
-`;
+`; // todo try subscriptions with non nullable again
 
 const globalQuery: Array<DocumentNode> = [
   MatchType,

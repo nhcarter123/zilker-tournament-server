@@ -59,11 +59,11 @@ const globalResolvers: ResolversType = {
           variables.matchIds.includes(payload.matchUpdated._id)
       )
     },
-    newRoundStarted: {
+    tournamentUpdated: {
       subscribe: withFilter(
-        () => pubsub.asyncIterator(Subscription.NewRoundStarted),
+        () => pubsub.asyncIterator(Subscription.TournamentUpdated),
         (payload, variables) =>
-          variables.tournamentId === payload.newRoundStarted.tournamentId
+          variables.tournamentId === payload.tournamentUpdated.tournament._id
       )
     }
   }

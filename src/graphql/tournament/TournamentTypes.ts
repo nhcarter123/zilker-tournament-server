@@ -31,7 +31,8 @@ export type RoundPreview = {
   matches: string[];
 };
 
-export type TournamentResponse = {
+export type Tournament = {
+  _id: string;
   name: string;
   date: Date;
   status: TournamentStatus;
@@ -42,26 +43,16 @@ export type TournamentResponse = {
   isDeleted: boolean;
 };
 
-// export interface TournamentResult
-//   extends Omit<Tournament, 'players' | 'rounds'> {
-//   players: User[];
-//   rounds: Round[];
-// }
-
-// export interface TournamentResultWithStats extends TournamentResult {
-//   medianRating: number;
-//   playerCount: number;
-// }
-
 const TournamentType: DocumentNode = gql`
   scalar Date
 
-  type NewRoundStartedData {
+  type JoinTournamentResult {
     tournamentId: String!
   }
 
-  type JoinTournamentResult {
-    tournamentId: String!
+  type TournamentUpdateResult {
+    tournament: Tournament!
+    newRound: Boolean!
   }
 
   enum MatchResult {

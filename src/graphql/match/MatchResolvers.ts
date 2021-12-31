@@ -1,10 +1,11 @@
 import type { Context } from '../TypeDefinitions';
-import { MatchResult, MatchWithUserInfo } from './MatchTypes';
-import MatchModel, { MatchMongo } from './MatchModel';
+import { Match, MatchResult, MatchWithUserInfo } from './MatchTypes';
+import MatchModel from './MatchModel';
 import { getRating } from '../tournament/helpers/ratingHelper';
 import UserModel, { User } from '../user/UserModel';
 import pubsub from '../../pubsub/pubsub';
-import { Subscription } from '../../pubsub/types';
+import { MatchUpdated, Subscription } from '../../pubsub/types';
+import { mapToMatch } from '../../mappers/mappers';
 
 type GetMyMatchArgs = {
   tournamentId: string
@@ -21,7 +22,7 @@ type UpdateMatchArgs = {
   }
 }
 
-const withUserInfo = async (match: Nullable<MatchMongo>) => {
+const withUserInfo = async (match: Nullable<Match>): Promise<Nullable<MatchWithUserInfo>> => {
   if (!match) {
     return null;
   }
@@ -37,7 +38,7 @@ const withUserInfo = async (match: Nullable<MatchMongo>) => {
     black = await UserModel.findOne({ _id: match.black });
   }
 
-  return { ...match.toObject(), white, black };
+  return { ...match, white, black };
 };
 
 const resolvers = {
@@ -52,13 +53,13 @@ const resolvers = {
         { white: user._id },
         { black: user._id }
       ]
-    });
+    }).then(mapToMatch);
 
     return withUserInfo(match);
   },
 
   getMatch: async (_: void, { matchId }: GetMatchArgs): Promise<Nullable<MatchWithUserInfo>> => {
-    const match = await MatchModel.findOne({ _id: matchId });
+    const match = await MatchModel.findOne({ _id: matchId }).then(mapToMatch);
 
     return withUserInfo(match);
   },
@@ -71,7 +72,7 @@ const resolvers = {
       throw new Error('Match not found!');
     }
 
-    let updatedMatch: Nullable<MatchMongo>;
+    let updatedMatch: Nullable<Match>;
 
     if (payload.result !== MatchResult.didNotStart) {
       const newWhiteRating = getRating(match.whiteRating, match.blackRating, payload.result, match.whiteMatchesPlayed, true);
@@ -81,15 +82,17 @@ const resolvers = {
         ...payload,
         newWhiteRating,
         newBlackRating
-      }, { new: true });
+      }, { new: true }).then(mapToMatch);
     } else {
       updatedMatch = await MatchModel.findOneAndUpdate({ _id: matchId }, {
         $set: { ...payload },
         $unset: { newWhiteRating: '', newBlackRating: '' }
-      }, { new: true });
+      }, { new: true }).then(mapToMatch);
     }
 
-    pubsub.publish(Subscription.MatchUpdated, { matchUpdated: updatedMatch?.toObject() });
+    if (updatedMatch) {
+      pubsub.publish<MatchUpdated>(Subscription.MatchUpdated, { matchUpdated: updatedMatch });
+    }
 
     return true;
   }

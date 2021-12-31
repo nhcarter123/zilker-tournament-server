@@ -12,6 +12,7 @@ import { RoundPreview } from '../TournamentTypes';
 import MatchModel from '../../match/MatchModel';
 import { Match } from '../../match/MatchTypes';
 import { connectToDb } from '../../../db';
+import { mapToMatches } from '../../../mappers/mappers';
 
 it('Should pair players', () => {
   const a = true;
@@ -36,7 +37,7 @@ it('This pulls data from a real example tournament', async () => {
 
   const matches = await MatchModel.find({
     _id: { $in: roundPreviews.flatMap(preview => preview.matches) }
-  });
+  }).then(mapToMatches);
 
   const userIds = uniq(
     matches
@@ -52,7 +53,7 @@ it('This pulls data from a real example tournament', async () => {
   const rounds = roundPreviews.map(preview => ({
     ...preview,
     matches: preview.matches.map(
-      id => find(matches, match => match._id.toString() === id) as Match
+      id => find(matches, match => match._id === id) as Match
     )
   }));
 

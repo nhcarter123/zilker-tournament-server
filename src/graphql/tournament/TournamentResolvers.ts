@@ -3,7 +3,7 @@ import TournamentModel, { TournamentMongo } from './TournamentModel';
 import {
   Round,
   RoundPreview,
-  TournamentResponse,
+  Tournament,
   TournamentStatus
 } from './TournamentTypes';
 import {
@@ -16,8 +16,14 @@ import MatchModel from '../match/MatchModel';
 import { Match, MatchResult } from '../match/MatchTypes';
 import { sendText } from '../verificationCode/helpers/twilio';
 import pubsub from '../../pubsub/pubsub';
-import { Subscription } from '../../pubsub/types';
+import { Subscription, TournamentUpdated } from '../../pubsub/types';
 import { Context } from '../TypeDefinitions';
+import {
+  mapToMatches,
+  mapToMatchIds,
+  mapToTournament,
+  mapToTournaments
+} from '../../mappers/mappers';
 
 type CreateTournamentArgs = {
   name: string;
@@ -86,8 +92,10 @@ const resolvers = {
     return TournamentModel.findOne({ _id: tournamentId });
   },
 
-  getTournaments: async (): Promise<TournamentResponse[]> => {
-    return TournamentModel.find({ isDeleted: false }).sort({ date: -1 });
+  getTournaments: async (): Promise<Tournament[]> => {
+    return TournamentModel.find({ isDeleted: false })
+      .sort({ date: -1 })
+      .then(mapToTournaments);
   },
 
   // Mutations
@@ -108,7 +116,17 @@ const resolvers = {
     _: void,
     { tournamentId, payload }: UpdateTournamentArgs
   ): Promise<boolean> => {
-    await TournamentModel.findOneAndUpdate({ _id: tournamentId }, payload);
+    const tournament = await TournamentModel.findOneAndUpdate(
+      { _id: tournamentId },
+      payload,
+      { new: true }
+    ).then(mapToTournament);
+
+    if (tournament) {
+      pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
+        tournamentUpdated: { tournament, newRound: false }
+      });
+    }
 
     return true;
   },
@@ -117,10 +135,17 @@ const resolvers = {
     _: void,
     { tournamentId, userId }: JoinTournamentArgs
   ): Promise<{ tournamentId: string }> => {
-    await TournamentModel.updateOne(
+    const tournament = await TournamentModel.findOneAndUpdate(
       { _id: tournamentId },
-      { $addToSet: { players: userId } }
-    );
+      { $addToSet: { players: userId } },
+      { new: true }
+    ).then(mapToTournament);
+
+    if (tournament) {
+      pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
+        tournamentUpdated: { tournament, newRound: false }
+      });
+    }
 
     return { tournamentId };
   },
@@ -129,10 +154,17 @@ const resolvers = {
     _: void,
     { tournamentId, userId }: KickPlayerArgs
   ): Promise<boolean> => {
-    await TournamentModel.updateOne(
+    const tournament = await TournamentModel.findOneAndUpdate(
       { _id: tournamentId },
-      { $pull: { players: userId } }
-    );
+      { $pull: { players: userId } },
+      { new: true }
+    ).then(mapToTournament);
+
+    if (tournament) {
+      pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
+        tournamentUpdated: { tournament, newRound: false }
+      });
+    }
 
     return true;
   },
@@ -159,7 +191,9 @@ const resolvers = {
       throw new Error('Round not found!');
     }
 
-    const matches = await MatchModel.find({ _id: { $in: round.matches } });
+    const matches = await MatchModel.find({ _id: { $in: round.matches } }).then(
+      mapToMatches
+    );
 
     return {
       _id: roundId,
@@ -173,17 +207,13 @@ const resolvers = {
     { tournamentId, roundId }: DeleteRoundArgs
   ): Promise<boolean> => {
     // todo use context
-    const tournamentModel: TournamentMongo | null = await TournamentModel.findOne(
-      {
-        _id: tournamentId
-      }
-    );
+    const tournament: Tournament | null = await TournamentModel.findOne({
+      _id: tournamentId
+    }).then(mapToTournament);
 
-    if (!tournamentModel) {
+    if (!tournament) {
       throw new Error('Tournament not found!');
     }
-
-    const tournament = tournamentModel.toObject();
 
     const round = find(
       tournament.rounds,
@@ -200,12 +230,12 @@ const resolvers = {
       _id: {
         $in: tournament.rounds.flatMap((round: RoundPreview) => round.matches)
       }
-    });
+    }).then(mapToMatches);
 
     const rounds: Round[] = tournament.rounds.map((round: RoundPreview) => ({
       ...round,
       matches: round.matches
-        .map(_id => find(matches, match => match._id.toString() === _id))
+        .map(_id => find(matches, match => match._id === _id))
         .flatMap(v => (v ? [v] : []))
     }));
 
@@ -245,14 +275,17 @@ const resolvers = {
 
     await MatchModel.deleteMany({ _id: { $in: round.matches } });
 
-    await TournamentModel.updateOne(
+    const updatedTournament = await TournamentModel.findOneAndUpdate(
       { _id: tournamentId },
-      { $pull: { rounds: { _id: round._id } }, standings }
-    );
+      { $pull: { rounds: { _id: round._id } }, standings },
+      { new: true }
+    ).then(mapToTournament);
 
-    pubsub.publish(Subscription.NewRoundStarted, {
-      newRoundStarted: { tournamentId }
-    });
+    if (updatedTournament) {
+      pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
+        tournamentUpdated: { tournament: updatedTournament, newRound: true }
+      });
+    }
 
     return true;
   },
@@ -262,9 +295,9 @@ const resolvers = {
     { tournamentId, newRound, textAlert }: completeRoundArgs
   ): Promise<boolean> => {
     // todo use context
-    const tournament: TournamentMongo | null = await TournamentModel.findOne({
+    const tournament: Tournament | null = await TournamentModel.findOne({
       _id: tournamentId
-    });
+    }).then(mapToTournament);
 
     if (!tournament) {
       throw new Error('Tournament not found!');
@@ -302,12 +335,12 @@ const resolvers = {
       _id: {
         $in: tournament.rounds.flatMap((round: RoundPreview) => round.matches)
       }
-    });
+    }).then(mapToMatches);
 
     const rounds: Round[] = tournament.rounds.map((round: RoundPreview) => ({
       ...round,
       matches: round.matches
-        .map(_id => find(matches, match => match._id.toString() === _id))
+        .map(_id => find(matches, match => match._id === _id))
         .filter(v => v) as Match[]
     }));
 
@@ -342,11 +375,13 @@ const resolvers = {
     }));
 
     if (newRound) {
-      const newMatches = await MatchModel.insertMany(nextRound.matches);
+      const matchIds = await MatchModel.insertMany(nextRound.matches).then(
+        mapToMatchIds
+      );
 
       updatedRounds.push({
         ...nextRound,
-        matches: newMatches.map(match => match._id)
+        matches: matchIds
       });
     }
 
@@ -364,14 +399,15 @@ const resolvers = {
       }))
     );
 
-    await TournamentModel.updateOne(
+    const updatedTournament = await TournamentModel.findOneAndUpdate(
       { _id: tournamentId },
       {
         rounds: updatedRounds,
         status: newRound ? TournamentStatus.active : TournamentStatus.completed,
         standings
-      }
-    );
+      },
+      { new: true }
+    ).then(mapToTournament);
 
     if (textAlert && newRound) {
       players
@@ -384,9 +420,11 @@ const resolvers = {
         );
     }
 
-    pubsub.publish(Subscription.NewRoundStarted, {
-      newRoundStarted: { tournamentId }
-    });
+    if (updatedTournament) {
+      pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
+        tournamentUpdated: { tournament: updatedTournament, newRound }
+      });
+    }
 
     return true;
   }

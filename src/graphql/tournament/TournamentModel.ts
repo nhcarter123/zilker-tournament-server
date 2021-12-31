@@ -1,16 +1,11 @@
 import * as mongoose from 'mongoose';
 import moment from 'moment';
-import { RoundPreview, Standing, TournamentStatus } from './TournamentTypes';
+import { Tournament, TournamentStatus } from './TournamentTypes';
 
-export interface TournamentMongo extends mongoose.Document {
-  name: string;
-  date: Date;
-  status: TournamentStatus;
-  players: string[];
-  rounds: RoundPreview[];
-  standings: Standing[];
-  totalRounds: number;
-  isDeleted: boolean;
+export interface TournamentMongo
+  extends Omit<Tournament, '_id'>,
+    mongoose.Document {
+  _id: mongoose.Types.ObjectId;
 }
 
 const Schema = new mongoose.Schema(
