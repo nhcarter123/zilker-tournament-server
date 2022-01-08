@@ -22,7 +22,8 @@ import {
   mapToMatches,
   mapToMatchIds,
   mapToTournament,
-  mapToTournaments
+  mapToTournaments,
+  mapToUsers
 } from '../../mappers/mappers';
 
 type CreateTournamentArgs = {
@@ -250,7 +251,7 @@ const resolvers = {
 
     const players = await UserModel.find({
       _id: { $in: userIds }
-    });
+    }).then(mapToUsers);
 
     const stats = getPlayerStats(rounds, players);
 
@@ -355,7 +356,7 @@ const resolvers = {
 
     const players = await UserModel.find({
       _id: { $in: userIds }
-    });
+    }).then(mapToUsers);
 
     const stats = getPlayerStats(rounds, players);
     const standings = createStandings(stats);

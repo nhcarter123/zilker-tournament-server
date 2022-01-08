@@ -1,11 +1,12 @@
 import VerificationCodeModel from './VerificationCodeModel';
 import UserModel from '../user/UserModel';
-import { User } from '../user/UserModel';
 import { customAlphabet } from 'nanoid/non-secure';
 import { generateToken } from '../utils';
 import { sendText } from './helpers/twilio';
+import { User } from '../user/UserTypes';
+import { mapToUserNonNull } from '../../mappers/mappers';
 
-const nanoid = customAlphabet('1234567890', 4)
+const nanoid = customAlphabet('1234567890', 4);
 
 type VerifyCodeArgs = {
   code: string;
@@ -30,7 +31,7 @@ const resolvers = {
     const token = generateToken(user?.phone || verificationCode.phone);
 
     if (user) {
-      await UserModel.updateOne({_id: user._id}, { token });
+      await UserModel.updateOne({ _id: user._id }, { token });
     } else {
       user = new UserModel({
         phone: verificationCode.phone,
@@ -40,7 +41,7 @@ const resolvers = {
       await user.save();
     }
 
-    return user;
+    return mapToUserNonNull(user);
   },
 
   sendVerificationCode: async (
@@ -56,7 +57,7 @@ const resolvers = {
 
     await verificationCode.save();
 
-    await sendText(`Verification code: ${code}. Zilker Park Chess.`, phone)
+    await sendText(`Verification code: ${code}. Zilker Park Chess.`, phone);
 
     return true;
   }

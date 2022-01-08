@@ -1,10 +1,9 @@
 import { gql } from 'apollo-server';
 import { DocumentNode } from 'graphql';
-import userTypes from './user/UserTypes';
+import userTypes, { User } from './user/UserTypes';
 import MatchType from './match/MatchTypes';
 import VerificationCodeTypes from './verificationCode/VerificationCodeTypes';
 import TournamentTypes from './tournament/TournamentTypes';
-import { User } from './user/UserModel';
 
 export type Context = {
   user: User;
@@ -62,7 +61,7 @@ const queryTypes: DocumentNode = gql`
   }
 
   type Subscription {
-    matchUpdated(matchIds: [ID!]!): Match
+    matchUpdated(matchIds: [ID!]!): MatchWithUserInfo
     tournamentUpdated(tournamentId: ID!): TournamentUpdateResult
   }
 

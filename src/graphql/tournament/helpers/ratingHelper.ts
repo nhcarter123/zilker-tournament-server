@@ -1,7 +1,7 @@
 import { MatchResult } from '../../match/MatchTypes';
 
 const getKFactor = (matchCount: number) => {
-  return 800 / (matchCount > 0 ? matchCount : 1);
+  return 20 + 600 / Math.max(matchCount, 1);
 };
 
 const getResultPoints = (matchResult: MatchResult, isWhite: boolean) => {

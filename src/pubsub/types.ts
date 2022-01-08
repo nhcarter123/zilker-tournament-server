@@ -1,5 +1,5 @@
 import { Tournament } from 'graphql/tournament/TournamentTypes';
-import { Match } from 'graphql/match/MatchTypes';
+import { MatchWithUserInfo } from 'graphql/match/MatchTypes';
 
 export enum Subscription {
   MatchUpdated = 'MATCH_UPDATED',
@@ -14,5 +14,5 @@ export type TournamentUpdated = {
 };
 
 export type MatchUpdated = {
-  matchUpdated: Match;
+  matchUpdated: MatchWithUserInfo;
 };

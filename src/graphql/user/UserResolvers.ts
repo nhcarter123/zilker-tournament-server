@@ -2,8 +2,10 @@ import S3, { ManagedUpload } from 'aws-sdk/clients/s3';
 import { nanoid } from 'nanoid';
 import mime from 'mime'
 import { FileUpload } from 'graphql-upload';
-import UserModel, { User } from './UserModel';
+import UserModel  from './UserModel';
 import type { Context } from '../TypeDefinitions';
+import { User } from './UserTypes';
+import { mapToUser, mapToUsers } from '../../mappers/mappers';
 
 // todo change to parameter store
 const s3 = new S3({
@@ -34,8 +36,8 @@ const resolvers = {
   // Query
   me: (_: void, args: void, context: Context): User => context.user,
 
-  getUser: async (_: void, { userId }: GetUserArgs): Promise<User | null> => {
-    return UserModel.findOne({ _id: userId });
+  getUser: async (_: void, { userId }: GetUserArgs): Promise<Nullable<User>> => {
+    return UserModel.findOne({ _id: userId }).then(mapToUser);
   },
 
   getUsers: async (_: void, { userIds, filterTerm }: GetUsersArgs): Promise<User[]> => {
@@ -48,7 +50,7 @@ const resolvers = {
       }
       : { _id: { $in: userIds } };
 
-    return UserModel.find(query);
+    return UserModel.find(query).then(mapToUsers);
   },
 
   // Mutation
@@ -56,7 +58,7 @@ const resolvers = {
     payload
   }: { payload: UpdateUserDetailsPayload }, context: Context): Promise<boolean> => {
 
-    await UserModel.findOneAndUpdate({ _id: context.user.id }, payload);
+    await UserModel.findOneAndUpdate({ _id: context.user._id }, payload);
 
     return true;
   },
@@ -81,7 +83,7 @@ const resolvers = {
       });
     });
 
-    await UserModel.findOneAndUpdate({ _id: context.user.id }, { photo: url });
+    await UserModel.findOneAndUpdate({ _id: context.user._id }, { photo: url });
 
     // delete old photo
     if (context.user.photo) {
@@ -119,7 +121,7 @@ const resolvers = {
         }
       });
     });
-    await UserModel.findOneAndUpdate({ _id: context.user.id }, { $unset: { photo: 1 } });
+    await UserModel.findOneAndUpdate({ _id: context.user._id }, { $unset: { photo: 1 } });
 
     return true;
   }

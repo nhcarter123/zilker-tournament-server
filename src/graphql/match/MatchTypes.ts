@@ -1,6 +1,6 @@
 import { gql } from 'apollo-server';
 import { DocumentNode } from 'graphql';
-import { User } from '../user/UserModel';
+import { User } from '../user/UserTypes';
 
 export enum MatchResult {
   whiteWon = 'whiteWon',
@@ -26,8 +26,8 @@ export interface Match {
 }
 
 export interface MatchWithUserInfo extends Omit<Match, 'white' | 'black'> {
-  white: User | null;
-  black: User | null;
+  white: Nullable<User>;
+  black: Nullable<User>;
 }
 
 const matchType: DocumentNode = gql`

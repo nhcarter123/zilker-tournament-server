@@ -1,26 +1,18 @@
 import * as jwt from 'jsonwebtoken';
-import UserModel, { User } from './user/UserModel';
+import UserModel from './user/UserModel';
 import { JwtPayload } from 'jsonwebtoken';
+import { mapToUser } from '../mappers/mappers';
+import { User } from './user/UserTypes';
 
-type GetUser = {
-  user: User | null;
-};
-
-export const getUser = async (token: string): Promise<GetUser> => {
+export const getUser = async (token: string): Promise<Nullable<User>> => {
   try {
     const decodedToken = jwt.verify(
       token.substring(7),
       `${process.env.SECRET}`
     ) as JwtPayload;
 
-    const user = await UserModel.findOne({ phone: decodedToken.id });
-
-    return {
-      user
-    };
+    return UserModel.findOne({ phone: decodedToken.id }).then(mapToUser);
   } catch (e) {
-    return {
-      user: null
-    };
+    return null;
   }
 };

@@ -1,16 +1,8 @@
 import * as mongoose from 'mongoose';
-import { Role } from './UserTypes';
+import { Role, User } from './UserTypes';
 
-export interface User extends mongoose.Document {
-  _id: string;
-  firstName?: string;
-  lastName?: string;
-  phone: string;
-  photo?: string;
-  rating: number;
-  matchesPlayed: number;
-  token?: string;
-  role: Role;
+export interface UserMongo extends Omit<User, '_id'>, mongoose.Document {
+  _id: mongoose.Types.ObjectId;
 }
 
 const Schema = new mongoose.Schema(
@@ -57,4 +49,4 @@ const Schema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model<User>('User', Schema);
+export default mongoose.model<UserMongo>('User', Schema);

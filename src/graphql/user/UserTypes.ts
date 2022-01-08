@@ -1,6 +1,18 @@
 import { gql } from 'apollo-server';
 import { DocumentNode } from 'graphql';
 
+export interface User {
+  _id: string;
+  firstName?: string;
+  lastName?: string;
+  phone: string;
+  photo?: string;
+  rating: number;
+  matchesPlayed: number;
+  token?: string;
+  role: Role;
+}
+
 export enum Role {
   player = 'player',
   admin = 'admin'

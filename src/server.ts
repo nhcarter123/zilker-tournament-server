@@ -43,7 +43,7 @@ const corsOptions = {
     schema,
     context: async ({ req }) => {
       const token = req.headers.authorization || '';
-      const { user } = await getUser(token);
+      const user = await getUser(token);
       return {
         user
       };
@@ -60,7 +60,7 @@ const corsOptions = {
       }
     ],
     formatResponse: (
-      response: GraphQLResponse | null,
+      response: Nullable<GraphQLResponse>,
       requestContext: GraphQLRequestContext<any>
     ) => {
       if (requestContext.response && requestContext.response.http) {

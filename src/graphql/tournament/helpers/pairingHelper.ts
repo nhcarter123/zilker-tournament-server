@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { chunk, groupBy } from 'lodash';
 import { Round, Standing } from '../TournamentTypes';
 import { Match, MatchResult } from '../../match/MatchTypes';
-import { User } from '../../user/UserModel';
+import { User } from '../../user/UserTypes';
 
 interface PlayerStat {
   win: number;
@@ -163,8 +163,8 @@ const createMatch = (
         ? playerId
         : opponentId
       : whitePlayed > opponentWhitePlayed
-        ? opponentId
-        : playerId;
+      ? opponentId
+      : playerId;
 
   const black = white === playerId ? opponentId : playerId;
 
