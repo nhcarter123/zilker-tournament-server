@@ -4,7 +4,6 @@ import {
   createNewRound,
   getPlayerStats
 } from 'graphql/tournament/helpers/pairingHelper';
-import { User } from '../../user/UserModel';
 import { Round } from '../TournamentTypes';
 import { find, uniq } from 'lodash';
 import UserModel from '../../user/UserModel';
@@ -12,7 +11,8 @@ import { RoundPreview } from '../TournamentTypes';
 import MatchModel from '../../match/MatchModel';
 import { Match } from '../../match/MatchTypes';
 import { connectToDb } from '../../../db';
-import { mapToMatches } from '../../../mappers/mappers';
+import { mapToMatches, mapToUsers } from '../../../mappers/mappers';
+import { User } from '../../user/UserTypes';
 
 it('Should pair players', () => {
   const a = true;
@@ -48,7 +48,7 @@ it('This pulls data from a real example tournament', async () => {
 
   const players = await UserModel.find({
     _id: { $in: userIds }
-  });
+  }).then(mapToUsers);
 
   const rounds = roundPreviews.map(preview => ({
     ...preview,
