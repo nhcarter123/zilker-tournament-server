@@ -13,7 +13,7 @@ import {
 } from './helpers/pairingHelper';
 import UserModel from '../user/UserModel';
 import MatchModel from '../match/MatchModel';
-import { Match, MatchResult } from '../match/MatchTypes';
+import { MatchResult } from '../match/MatchTypes';
 import { sendText } from '../verificationCode/helpers/twilio';
 import pubsub from '../../pubsub/pubsub';
 import { Subscription, TournamentUpdated } from '../../pubsub/types';
@@ -173,7 +173,7 @@ const resolvers = {
   getRound: async (
     _: void,
     { tournamentId, roundId }: GetRoundArgs
-  ): Promise<Round | null> => {
+  ): Promise<Nullable<Round>> => {
     // todo use context
     const tournament: TournamentMongo | null = await TournamentModel.findOne({
       _id: tournamentId
@@ -196,10 +196,22 @@ const resolvers = {
       mapToMatches
     );
 
+    const userIds = matches.flatMap(match => [match.white, match.black]);
+
+    const users = await UserModel.find({ _id: { $in: userIds } }).then(
+      mapToUsers
+    );
+
+    const matchesWithUserInfo = matches.map(match => ({
+      ...match,
+      white: find(users, user => user._id === match.white) || null,
+      black: find(users, user => user._id === match.black) || null
+    }));
+
     return {
       _id: roundId,
       completed: false,
-      matches
+      matches: matchesWithUserInfo
     };
   },
 
@@ -208,7 +220,7 @@ const resolvers = {
     { tournamentId, roundId }: DeleteRoundArgs
   ): Promise<boolean> => {
     // todo use context
-    const tournament: Tournament | null = await TournamentModel.findOne({
+    const tournament: Nullable<Tournament> = await TournamentModel.findOne({
       _id: tournamentId
     }).then(mapToTournament);
 
@@ -233,18 +245,9 @@ const resolvers = {
       }
     }).then(mapToMatches);
 
-    const rounds: Round[] = tournament.rounds.map((round: RoundPreview) => ({
-      ...round,
-      matches: round.matches
-        .map(_id => find(matches, match => match._id === _id))
-        .flatMap(v => (v ? [v] : []))
-    }));
-
     const userIds = uniq(
-      rounds
-        .flatMap(round =>
-          round.matches.flatMap(match => [match.white, match.black])
-        )
+      matches
+        .flatMap(match => [match.white, match.black])
         .concat(tournament.players)
         .filter(id => id !== 'bye')
     );
@@ -252,6 +255,18 @@ const resolvers = {
     const players = await UserModel.find({
       _id: { $in: userIds }
     }).then(mapToUsers);
+
+    const rounds: Round[] = tournament.rounds.map((round: RoundPreview) => ({
+      ...round,
+      matches: round.matches
+        .map(_id => find(matches, match => match._id === _id))
+        .flatMap(v => (v ? [v] : []))
+        .map(match => ({
+          ...match,
+          white: find(players, user => user._id === match.white) || null,
+          black: find(players, user => user._id === match.black) || null
+        }))
+    }));
 
     const stats = getPlayerStats(rounds, players);
 
@@ -338,18 +353,9 @@ const resolvers = {
       }
     }).then(mapToMatches);
 
-    const rounds: Round[] = tournament.rounds.map((round: RoundPreview) => ({
-      ...round,
-      matches: round.matches
-        .map(_id => find(matches, match => match._id === _id))
-        .filter(v => v) as Match[]
-    }));
-
     const userIds = uniq(
-      rounds
-        .flatMap(round =>
-          round.matches.flatMap(match => [match.white, match.black])
-        )
+      matches
+        .flatMap(match => [match.white, match.black])
         .concat(tournament.players)
         .filter(id => id !== 'bye')
     );
@@ -357,6 +363,18 @@ const resolvers = {
     const players = await UserModel.find({
       _id: { $in: userIds }
     }).then(mapToUsers);
+
+    const rounds: Round[] = tournament.rounds.map((round: RoundPreview) => ({
+      ...round,
+      matches: round.matches
+        .map(_id => find(matches, match => match._id === _id))
+        .flatMap(v => (v ? [v] : []))
+        .map(match => ({
+          ...match,
+          white: find(players, user => user._id === match.white) || null,
+          black: find(players, user => user._id === match.black) || null
+        }))
+    }));
 
     const stats = getPlayerStats(rounds, players);
     const standings = createStandings(stats);

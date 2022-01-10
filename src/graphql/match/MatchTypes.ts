@@ -66,7 +66,7 @@ const matchType: DocumentNode = gql`
   type Round {
     _id: ID!
     completed: Boolean!
-    matches: [Match!]!
+    matches: [MatchWithUserInfo!]!
   }
 
   input UpdateMatchPayload {
