@@ -29,7 +29,7 @@ const queryTypes: DocumentNode = gql`
 
     getMatch(matchId: ID!): MatchWithUserInfo
     getMyMatch(tournamentId: ID!): MatchWithUserInfo
-    getRound(tournamentId: ID!, roundId: ID!): Round
+    getRound(tournamentId: ID!, roundId: ID!): RoundWithUserInfo
   }
 
   type Mutation {

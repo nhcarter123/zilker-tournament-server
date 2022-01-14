@@ -82,7 +82,7 @@ export const getPlayerStats = (
           break;
       }
 
-      if (match.black !== 'bye' && match.black !== 'bye') {
+      if (match.white !== 'bye' && match.black !== 'bye') {
         playerStats[match.white].previousRating = match.whiteRating;
         playerStats[match.black].previousRating = match.blackRating;
 

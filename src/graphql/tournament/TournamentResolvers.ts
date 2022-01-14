@@ -3,6 +3,7 @@ import TournamentModel, { TournamentMongo } from './TournamentModel';
 import {
   Round,
   RoundPreview,
+  RoundWithUserInfo,
   Tournament,
   TournamentStatus
 } from './TournamentTypes';
@@ -173,7 +174,7 @@ const resolvers = {
   getRound: async (
     _: void,
     { tournamentId, roundId }: GetRoundArgs
-  ): Promise<Nullable<Round>> => {
+  ): Promise<Nullable<RoundWithUserInfo>> => {
     // todo use context
     const tournament: TournamentMongo | null = await TournamentModel.findOne({
       _id: tournamentId
@@ -261,11 +262,6 @@ const resolvers = {
       matches: round.matches
         .map(_id => find(matches, match => match._id === _id))
         .flatMap(v => (v ? [v] : []))
-        .map(match => ({
-          ...match,
-          white: find(players, user => user._id === match.white) || null,
-          black: find(players, user => user._id === match.black) || null
-        }))
     }));
 
     const stats = getPlayerStats(rounds, players);
@@ -369,11 +365,6 @@ const resolvers = {
       matches: round.matches
         .map(_id => find(matches, match => match._id === _id))
         .flatMap(v => (v ? [v] : []))
-        .map(match => ({
-          ...match,
-          white: find(players, user => user._id === match.white) || null,
-          black: find(players, user => user._id === match.black) || null
-        }))
     }));
 
     const stats = getPlayerStats(rounds, players);

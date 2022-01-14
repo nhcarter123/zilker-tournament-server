@@ -1,6 +1,6 @@
 import { gql } from 'apollo-server';
 import { DocumentNode } from 'graphql';
-import { MatchWithUserInfo } from '../match/MatchTypes';
+import { Match, MatchWithUserInfo } from '../match/MatchTypes';
 
 export enum TournamentStatus {
   created = 'created',
@@ -20,6 +20,12 @@ export type Standing = {
 };
 
 export type Round = {
+  _id: string;
+  completed: boolean;
+  matches: Match[];
+};
+
+export type RoundWithUserInfo = {
   _id: string;
   completed: boolean;
   matches: MatchWithUserInfo[];

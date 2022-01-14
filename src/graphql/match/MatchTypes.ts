@@ -63,7 +63,7 @@ const matchType: DocumentNode = gql`
     completed: Boolean!
   }
 
-  type Round {
+  type RoundWithUserInfo {
     _id: ID!
     completed: Boolean!
     matches: [MatchWithUserInfo!]!
