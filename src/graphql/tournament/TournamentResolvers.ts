@@ -18,7 +18,7 @@ import { MatchResult } from '../match/MatchTypes';
 import { sendText } from '../verificationCode/helpers/twilio';
 import pubsub from '../../pubsub/pubsub';
 import { Subscription, TournamentUpdated } from '../../pubsub/types';
-import { Context } from '../TypeDefinitions';
+import { VerifiedContext } from '../TypeDefinitions';
 import {
   mapToMatches,
   mapToMatchIds,
@@ -78,7 +78,7 @@ const resolvers = {
   getMyTournament: async (
     _: void,
     _args: void,
-    context: Context
+    context: VerifiedContext
   ): Promise<Nullable<TournamentMongo>> => {
     return TournamentModel.findOne({
       status: TournamentStatus.active,
@@ -196,8 +196,9 @@ const resolvers = {
     const matches = await MatchModel.find({ _id: { $in: round.matches } }).then(
       mapToMatches
     );
-
-    const userIds = matches.flatMap(match => [match.white, match.black]);
+    const userIds = matches
+      .flatMap(match => [match.white, match.black])
+      .filter(id => id !== 'bye');
 
     const users = await UserModel.find({ _id: { $in: userIds } }).then(
       mapToUsers

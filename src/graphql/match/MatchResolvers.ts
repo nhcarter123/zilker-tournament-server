@@ -1,4 +1,4 @@
-import type { Context } from '../TypeDefinitions';
+import type { VerifiedContext } from '../TypeDefinitions';
 import { Match, MatchResult, MatchWithUserInfo } from './MatchTypes';
 import MatchModel from './MatchModel';
 import { getRating } from '../tournament/helpers/ratingHelper';
@@ -40,7 +40,7 @@ const withUserInfo = async (match: Match): Promise<MatchWithUserInfo> => {
 
 const resolvers = {
   // Query
-  getMyMatch: async (_: void, { tournamentId }: GetMyMatchArgs, context: Context): Promise<Nullable<MatchWithUserInfo>> => {
+  getMyMatch: async (_: void, { tournamentId }: GetMyMatchArgs, context: VerifiedContext): Promise<Nullable<MatchWithUserInfo>> => {
     const user = context.user;
 
     const match = await MatchModel.findOne({

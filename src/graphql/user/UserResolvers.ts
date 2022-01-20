@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 import mime from 'mime'
 import { FileUpload } from 'graphql-upload';
 import UserModel  from './UserModel';
-import type { Context } from '../TypeDefinitions';
+import type { Context, VerifiedContext } from '../TypeDefinitions';
 import { User } from './UserTypes';
 import { mapToUser, mapToUsers } from '../../mappers/mappers';
 
@@ -34,7 +34,7 @@ type GetUsersArgs = {
 
 const resolvers = {
   // Query
-  me: (_: void, args: void, context: Context): User => context.user,
+  me: (_: void, args: void, context: Context): Nullable<User> => context.user,
 
   getUser: async (_: void, { userId }: GetUserArgs): Promise<Nullable<User>> => {
     return UserModel.findOne({ _id: userId }).then(mapToUser);
@@ -56,14 +56,14 @@ const resolvers = {
   // Mutation
   updateUserDetails: async (_: void, {
     payload
-  }: { payload: UpdateUserDetailsPayload }, context: Context): Promise<boolean> => {
+  }: { payload: UpdateUserDetailsPayload }, context: VerifiedContext): Promise<boolean> => {
 
     await UserModel.findOneAndUpdate({ _id: context.user._id }, payload);
 
     return true;
   },
 
-  uploadPhoto: async (_: void, { photo }: UploadPhotoArgs, context: Context): Promise<boolean> => {
+  uploadPhoto: async (_: void, { photo }: UploadPhotoArgs, context: VerifiedContext): Promise<boolean> => {
     const { createReadStream, mimetype } = await photo;
 
     const params = {
@@ -106,7 +106,9 @@ const resolvers = {
     return true;
   },
 
-  deletePhoto: async (_: void, _args: void, context: Context): Promise<boolean> => {
+  deletePhoto: async (_: void, _args: void, context: VerifiedContext): Promise<boolean> => {
+    // todo this function does not seem to work, photos still present in s3
+    // possibly this is working but re-upload also needs to delet
     const params = {
       Bucket: process.env.S3_PHOTO_BUCKET || '',
       Key: context.user.photo || '',

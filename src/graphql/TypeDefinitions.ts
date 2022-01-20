@@ -6,6 +6,10 @@ import VerificationCodeTypes from './verificationCode/VerificationCodeTypes';
 import TournamentTypes from './tournament/TournamentTypes';
 
 export type Context = {
+  user: Nullable<User>;
+};
+
+export type VerifiedContext = {
   user: User;
 };
 
@@ -62,7 +66,7 @@ const queryTypes: DocumentNode = gql`
 
   type Subscription {
     matchUpdated(matchIds: [ID!]!): MatchWithUserInfo
-    tournamentUpdated(tournamentId: ID!): TournamentUpdateResult
+    tournamentUpdated(tournamentIds: [ID!]!): TournamentUpdateResult
   }
 
   schema {
