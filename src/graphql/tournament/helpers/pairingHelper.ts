@@ -183,8 +183,8 @@ const createMatch = (
   };
 };
 
-const batchGroups = (groups: string[][], maxPunchdown: number) =>
-  groups.flatMap(group => chunk(group, maxPunchdown));
+const batchGroups = (groups: string[][], maxPunchDown: number) =>
+  groups.flatMap(group => chunk(group, maxPunchDown));
 
 const swissSplit = (group: string[]) => {
   const halfLength = Math.ceil(group.length / 2);
@@ -224,7 +224,7 @@ export const createNewRound = (
   tournamentId: string,
   stats: PlayerStats,
   currentPlayers: string[],
-  maxPunchdown: number
+  maxPunchDown: number
 ): Round => {
   for (const id of Object.keys(stats)) {
     if (!currentPlayers.includes(id)) {
@@ -249,7 +249,7 @@ export const createNewRound = (
     .sort((a, b) => b[0].score - a[0].score)
     .map(group => group.map(player => player.id));
 
-  const batchedGroups = batchGroups(groups, 2 * maxPunchdown);
+  const batchedGroups = batchGroups(groups, 2 * maxPunchDown);
 
   const parallelGroups = batchedGroups.map(group => swissSplit(group));
 
