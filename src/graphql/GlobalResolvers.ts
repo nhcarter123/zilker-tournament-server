@@ -52,12 +52,14 @@ const globalResolvers: ResolversType = {
     deletePhoto: withAuth(userResolvers.deletePhoto),
     verifyCode: verificationCodeResolvers.verifyCode,
     sendVerificationCode: verificationCodeResolvers.sendVerificationCode,
+
     // Tournament
     createTournament: withAuth(tournamentResolvers.createTournament),
     updateTournament: withAuth(tournamentResolvers.updateTournament),
     completeRound: withAuth(tournamentResolvers.completeRound),
     deleteRound: withAuth(tournamentResolvers.deleteRound),
     joinTournament: withAuth(tournamentResolvers.joinTournament),
+    autoJoinTournament: withAuth(tournamentResolvers.autoJoinTournament),
     kickPlayer: withAuth(tournamentResolvers.kickPlayer),
 
     // Match

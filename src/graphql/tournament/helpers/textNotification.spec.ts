@@ -16,9 +16,9 @@ it('Should send all players an update about the tournament', async () => {
 
   // for (const phone of phoneNumbers) {
   //   await sendText(
-  //     `The tournament is canceled this week due to weather + sickness. -Zilker Park Chess`,
+  //     `⚠️Location Update⚠️: The tournament will be held at Zilker Park on Saturday, 2:00pm. Location: https://goo.gl/maps/YSRkiokLoqX1Rm59A. -Zilker Park Chess`,
   //     phone
-  //   );
+  //   ).catch(console.log);
   //   console.log(phone);
   //   console.log(count++);
   // }

@@ -45,6 +45,7 @@ const queryTypes: DocumentNode = gql`
     ): Boolean!
     deleteRound(tournamentId: ID!, roundId: ID!): Boolean!
     joinTournament(tournamentId: ID!, userId: ID!): JoinTournamentResult!
+    autoJoinTournament(organizationId: ID!): JoinTournamentResult!
     kickPlayer(tournamentId: ID!, userId: ID!): Boolean!
     createTournament(name: String!): Boolean!
     updateTournament(

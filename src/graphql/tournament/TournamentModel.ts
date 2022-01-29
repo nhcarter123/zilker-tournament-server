@@ -86,6 +86,9 @@ const Schema = new mongoose.Schema(
       type: Boolean,
       default: false,
       required: true
+    },
+    location: {
+      type: String
     }
   },
   {

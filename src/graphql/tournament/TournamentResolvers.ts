@@ -45,7 +45,10 @@ type UpdateTournamentPayload = {
 
 type JoinTournamentArgs = {
   tournamentId: string;
-  userId: string;
+};
+
+type AutoJoinTournamentArgs = {
+  organizationId: string;
 };
 
 type KickPlayerArgs = {
@@ -135,11 +138,12 @@ const resolvers = {
 
   joinTournament: async (
     _: void,
-    { tournamentId, userId }: JoinTournamentArgs
+    { tournamentId }: JoinTournamentArgs,
+    context: VerifiedContext
   ): Promise<{ tournamentId: string }> => {
     const tournament = await TournamentModel.findOneAndUpdate(
       { _id: tournamentId },
-      { $addToSet: { players: userId } },
+      { $addToSet: { players: context.user._id } },
       { new: true }
     ).then(mapToTournament);
 
@@ -150,6 +154,40 @@ const resolvers = {
     }
 
     return { tournamentId };
+  },
+
+  autoJoinTournament: async (
+    _: void,
+    { organizationId }: AutoJoinTournamentArgs,
+    context: VerifiedContext
+  ): Promise<{ tournamentId: string }> => {
+    console.log(organizationId);
+    console.log(context.user._id);
+
+    const isInAnotherActiveTournament = await TournamentModel.findOne(
+      { status: TournamentStatus.active },
+      { $in: { players: context.user._id } }
+    );
+
+    if (isInAnotherActiveTournament) {
+      throw new Error('Is in another active tournament!');
+    }
+
+    const tournament = await TournamentModel.findOneAndUpdate(
+      { status: TournamentStatus.active }, // todo change this
+      { $addToSet: { players: context.user._id } },
+      { new: true }
+    ).then(mapToTournament);
+
+    if (!tournament) {
+      throw new Error('No tournament found!');
+    }
+
+    pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
+      tournamentUpdated: { tournament, newRound: false }
+    });
+
+    return { tournamentId: tournament._id };
   },
 
   kickPlayer: async (
@@ -425,7 +463,7 @@ const resolvers = {
         .filter(player => tournament.players.includes(player._id))
         .map(player =>
           sendText(
-            `⚠🚨 Round ${updatedRounds.length} is starting 🚨⚠`,
+            `⚠️🚨 Round ${updatedRounds.length} is starting 🚨⚠️`,
             player.phone
           ).catch(e => console.log(e))
         );

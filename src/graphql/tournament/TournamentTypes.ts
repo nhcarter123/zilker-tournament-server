@@ -101,6 +101,7 @@ const TournamentType: DocumentNode = gql`
     totalRounds: Int!
     standings: [Standing!]!
     isDeleted: Boolean!
+    location: String
   }
 `;
 
