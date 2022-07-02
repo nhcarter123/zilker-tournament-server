@@ -27,6 +27,16 @@ const Schema = new mongoose.Schema(
       type: Number,
       required: true
     },
+    whiteScore: {
+      type: Number,
+      required: true,
+      default: 0
+    },
+    blackScore: {
+      type: Number,
+      required: true,
+      default: 0
+    },
     whiteMatchesPlayed: {
       type: Number,
       required: true

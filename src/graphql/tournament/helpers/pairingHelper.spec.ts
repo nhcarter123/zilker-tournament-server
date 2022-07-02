@@ -24,7 +24,8 @@ it('Should pair players', () => {
     tournamentId,
     stats,
     players.map(player => player._id),
-    2
+    2,
+    0
   );
 
   // todo finish this
@@ -64,7 +65,8 @@ it('This pulls data from a real example tournament', async () => {
     tournamentId,
     stats,
     players.map(player => player._id.toString()),
-    2
+    2,
+    0
   );
 
   console.log('done');

@@ -16,6 +16,8 @@ export interface Match {
   black: string;
   whiteRating: number;
   blackRating: number;
+  whiteScore: number;
+  blackScore: number;
   newWhiteRating?: number;
   newBlackRating?: number;
   whiteMatchesPlayed: number;
@@ -31,22 +33,6 @@ export interface MatchWithUserInfo extends Omit<Match, 'white' | 'black'> {
 }
 
 const matchType: DocumentNode = gql`
-  type Match {
-    _id: String!
-    tournamentId: String!
-    white: String!
-    black: String!
-    whiteRating: Int!
-    blackRating: Int!
-    newWhiteRating: Int
-    newBlackRating: Int
-    whiteMatchesPlayed: Int!
-    blackMatchesPlayed: Int!
-    boardNumber: Int!
-    result: MatchResult!
-    completed: Boolean!
-  }
-
   type MatchWithUserInfo {
     _id: String!
     tournamentId: String!
@@ -54,6 +40,8 @@ const matchType: DocumentNode = gql`
     black: User
     whiteRating: Int!
     blackRating: Int!
+    whiteScore: Float!
+    blackScore: Float!
     newWhiteRating: Int
     newBlackRating: Int
     whiteMatchesPlayed: Int!

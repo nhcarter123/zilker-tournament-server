@@ -22,7 +22,7 @@ export const getRating = (
   matchResult: MatchResult,
   matchesPlayed: number,
   isWhite: boolean
-) => {
+): number => {
   const kFactor = getKFactor(matchesPlayed);
   const resultPoints = getResultPoints(matchResult, isWhite);
 

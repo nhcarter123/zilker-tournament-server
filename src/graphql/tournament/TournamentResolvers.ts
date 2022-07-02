@@ -14,7 +14,7 @@ import {
 } from './helpers/pairingHelper';
 import UserModel from '../user/UserModel';
 import MatchModel from '../match/MatchModel';
-import { MatchResult } from '../match/MatchTypes';
+import { Match, MatchResult } from '../match/MatchTypes';
 import { sendText } from '../verificationCode/helpers/twilio';
 import pubsub from '../../pubsub/pubsub';
 import { Subscription, TournamentUpdated } from '../../pubsub/types';
@@ -26,6 +26,7 @@ import {
   mapToTournaments,
   mapToUsers
 } from '../../mappers/mappers';
+import { addHistoryToMatch } from '../match/MatchResolvers';
 
 type CreateTournamentArgs = {
   name: string;
@@ -414,7 +415,8 @@ const resolvers = {
       tournamentId,
       stats,
       tournament.players,
-      maxPunchDown
+      maxPunchDown,
+      tournament.tiebreakSeed + rounds.length
     );
 
     const updatedRounds = tournament.rounds.map(round => ({
@@ -424,7 +426,14 @@ const resolvers = {
     }));
 
     if (newRound) {
-      const matchIds = await MatchModel.insertMany(nextRound.matches).then(
+      const matchesWithHistory: Match[] = [];
+
+      for (const match of nextRound.matches) {
+        const matchWithHistory = await addHistoryToMatch(match);
+        matchesWithHistory.push(matchWithHistory);
+      }
+
+      const matchIds = await MatchModel.insertMany(matchesWithHistory).then(
         mapToMatchIds
       );
 

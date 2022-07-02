@@ -149,7 +149,8 @@ const createMatch = (
   opponentId: string,
   stats: PlayerStats,
   boardNumber: number,
-  tournamentId: string
+  tournamentId: string,
+  boardTiebreakSeed: number
 ): Match => {
   const player = stats[playerId];
   const opponent = stats[opponentId];
@@ -159,7 +160,7 @@ const createMatch = (
 
   const white =
     whitePlayed === opponent.whitePlayed
-      ? player.rating > opponent.rating
+      ? boardTiebreakSeed % 2 === 1
         ? playerId
         : opponentId
       : whitePlayed > opponentWhitePlayed
@@ -173,6 +174,8 @@ const createMatch = (
     tournamentId,
     white,
     black,
+    whiteScore: 0,
+    blackScore: 0,
     whiteRating: stats[white].rating,
     blackRating: stats[black].rating,
     whiteMatchesPlayed: stats[white].matchesPlayed + 1,
@@ -224,7 +227,8 @@ export const createNewRound = (
   tournamentId: string,
   stats: PlayerStats,
   currentPlayers: string[],
-  maxPunchDown: number
+  maxPunchDown: number,
+  boardTiebreakSeed: number
 ): Round => {
   for (const id of Object.keys(stats)) {
     if (!currentPlayers.includes(id)) {
@@ -297,7 +301,14 @@ export const createNewRound = (
         boardNumber += 1;
 
         matches.push(
-          createMatch(player.id, opponent.id, stats, boardNumber, tournamentId)
+          createMatch(
+            player.id,
+            opponent.id,
+            stats,
+            boardNumber,
+            tournamentId,
+            boardTiebreakSeed + boardNumber
+          )
         );
       }
     }
@@ -309,6 +320,8 @@ export const createNewRound = (
       tournamentId,
       white: byePlayer,
       black: 'bye',
+      whiteScore: 0,
+      blackScore: 0,
       whiteRating: stats[byePlayer].rating,
       blackRating: 0,
       whiteMatchesPlayed: stats[byePlayer].matchesPlayed,

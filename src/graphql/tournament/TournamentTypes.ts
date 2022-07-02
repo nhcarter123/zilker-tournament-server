@@ -45,6 +45,7 @@ export type Tournament = {
   players: string[];
   rounds: RoundPreview[];
   totalRounds: number;
+  tiebreakSeed: number;
   standings: Standing[];
   isDeleted: boolean;
 };
