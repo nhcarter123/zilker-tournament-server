@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
-import { chunk, groupBy } from 'lodash';
+import { groupBy } from 'lodash';
 import { Round, Standing } from '../TournamentTypes';
 import { Match, MatchResult } from '../../match/MatchTypes';
 import { User } from '../../user/UserTypes';
+import { batchGroups, fillGaps, swissSplit } from './swissJank';
 
 interface PlayerStat {
   win: number;
@@ -56,7 +57,7 @@ export const getPlayerStats = (
     };
   });
 
-  //calculate new round
+  // look through all the previous rounds and sum the player's stats
   for (const round of rounds) {
     for (const match of round.matches) {
       switch (match.result) {
@@ -186,58 +187,24 @@ const createMatch = (
   };
 };
 
-const batchGroups = (groups: string[][], maxPunchDown: number) =>
-  groups.flatMap(group => chunk(group, maxPunchDown));
-
-const swissSplit = (group: string[]) => {
-  const halfLength = Math.ceil(group.length / 2);
-  const topPlayers = group.splice(0, halfLength);
-
-  return [topPlayers, group];
-};
-
-const fillGaps = (parallelGroups: string[][][]) => {
-  const filledGroups = [];
-
-  for (let i = 0; i < parallelGroups.length; i++) {
-    const groupA = parallelGroups[i][0] || [];
-    const groupB = parallelGroups[i][1] || [];
-
-    if (i < parallelGroups.length - 1) {
-      while (groupA.length !== groupB.length) {
-        while (groupB.length < groupA.length) {
-          const nextGroupA = parallelGroups[i + 1][0] || [];
-
-          groupB.push(nextGroupA.shift() || '');
-        }
-
-        while (groupA.length < groupB.length) {
-          groupA.push(groupB.shift() || '');
-        }
-      }
-    }
-
-    filledGroups.push([groupA, groupB]);
-  }
-
-  return filledGroups;
-};
-
 export const createNewRound = (
   tournamentId: string,
-  stats: PlayerStats,
-  currentPlayers: string[],
-  maxPunchDown: number,
-  boardTiebreakSeed: number
+  stats: PlayerStats, // A bunch of useful info about the players and their performance
+  currentPlayers: string[], // Current players in the tournament
+  maxPunchDown: number, // Variable used for pairing
+  boardTiebreakSeed: number // Seed number used for tie breaking starting color
 ): Round => {
+  // Filter out players that are no longer in the tournament
   for (const id of Object.keys(stats)) {
     if (!currentPlayers.includes(id)) {
       delete stats[id];
     }
   }
 
+  // Get the bye player - It's easier to do this first so we can exclude them from pairing logic
   const byePlayer = findByePlayer(stats);
 
+  // A bunch of janky accelerated swiss code... **************************** START
   const sortedPlayers: PlayerStub[] = Object.entries(stats)
     .map(([id, value]) => ({
       id,
@@ -245,7 +212,7 @@ export const createNewRound = (
       rating: value.rating
     }))
     .sort((a, b) => b.score - a.score || b.rating - a.rating)
-    .filter(player => player.id !== byePlayer);
+    .filter(player => player.id !== byePlayer); // Exclude bye player
 
   const groups: string[][] = Object.values(
     groupBy(sortedPlayers, player => player.score)
@@ -313,6 +280,7 @@ export const createNewRound = (
       }
     }
   }
+  // A bunch of janky accelerated swiss code... **************************** END
 
   if (byePlayer) {
     matches.push({
@@ -331,6 +299,8 @@ export const createNewRound = (
       completed: false
     });
   }
+
+  // Need to return a Round which is basically na array of matches
 
   return {
     _id: new mongoose.Types.ObjectId().toString(),
