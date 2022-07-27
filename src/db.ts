@@ -5,7 +5,7 @@ export const connectToDb = () =>
     .then(mongoose => {
       const info = mongoose.connections[0];
       console.log(
-        `Connected to mongodb 🍃 at ${info.host}:${info.port}/${info.name}`
+        `Connected to mongodb 🍃 at ${info?.host}:${info?.port}/${info?.name}`
       );
     })
     .catch(error => {

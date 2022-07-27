@@ -10,6 +10,7 @@ import {
 import {
   createNewRound,
   createStandings,
+  EPairingAlgorithm,
   getPlayerStats
 } from './helpers/pairingHelper';
 import UserModel from '../user/UserModel';
@@ -359,7 +360,7 @@ const resolvers = {
     const index = tournament.rounds.length - 1;
 
     if (index !== -1) {
-      const lastRoundsMatches = tournament.rounds[index].matches;
+      const lastRoundsMatches = tournament.rounds[index]?.matches;
 
       await MatchModel.updateMany(
         {
@@ -409,14 +410,15 @@ const resolvers = {
 
     const stats = getPlayerStats(rounds, players);
     const standings = createStandings(stats);
-    const maxPunchDown = Math.ceil(tournament.players.length / 6);
+    const maxPunchDown = Math.ceil(tournament.players.length / 12);
 
     const nextRound = createNewRound(
       tournamentId,
       stats,
       tournament.players,
       maxPunchDown,
-      tournament.tiebreakSeed + rounds.length
+      tournament.tiebreakSeed + rounds.length,
+      EPairingAlgorithm.Rating
     );
 
     const updatedRounds = tournament.rounds.map(round => ({

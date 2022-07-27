@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
-import { groupBy } from 'lodash';
 import { Round, Standing } from '../TournamentTypes';
 import { Match, MatchResult } from '../../match/MatchTypes';
 import { User } from '../../user/UserTypes';
-import { batchGroups, fillGaps, swissSplit } from './swissJank';
+import { getSwissMatches } from './swissPairing';
+import { getRatingMatches } from './ratingPairing';
 
 interface PlayerStat {
   win: number;
@@ -20,20 +20,8 @@ interface PlayerStat {
   };
 }
 
-interface PlayerStats {
+export interface PlayerStats {
   [id: string]: PlayerStat;
-}
-
-interface PlayerStub {
-  id: string;
-  score: number;
-  rating: number;
-}
-
-interface Candidate {
-  id: string;
-  index: number;
-  targetIndex: number;
 }
 
 export const getPlayerStats = (
@@ -61,52 +49,114 @@ export const getPlayerStats = (
   for (const round of rounds) {
     for (const match of round.matches) {
       switch (match.result) {
-        case MatchResult.whiteWon:
-          playerStats[match.white].win += 1;
-          playerStats[match.black].loss += 1;
-          break;
-        case MatchResult.blackWon:
-          playerStats[match.white].loss += 1;
-          playerStats[match.black].win += 1;
-          break;
-        case MatchResult.draw:
-          playerStats[match.white].draw += 1;
-          playerStats[match.black].draw += 1;
-          break;
-        case MatchResult.didNotStart:
-          if (match.white !== 'bye') {
-            playerStats[match.white].bye += 1;
+        case MatchResult.whiteWon: {
+          const white = playerStats[match.white];
+          if (white) {
+            // playerStats[match.white] = { ...white, win: white.win + 1 };
+            white.win += 1;
           }
-          if (match.black !== 'bye') {
-            playerStats[match.black].bye += 1;
+
+          const black = playerStats[match.black];
+          if (black) {
+            // playerStats[match.black] = { ...black, loss: black.loss + 1 };
+            black.loss += 1;
           }
           break;
+        }
+        case MatchResult.blackWon: {
+          const white = playerStats[match.white];
+          if (white) {
+            // playerStats[match.white] = { ...white, loss: white.loss + 1 };
+            white.loss += 1;
+          }
+
+          const black = playerStats[match.black];
+          if (black) {
+            // playerStats[match.black] = { ...black, win: black.win + 1 };
+            black.win += 1;
+          }
+          break;
+        }
+        case MatchResult.draw: {
+          const white = playerStats[match.white];
+          if (white) {
+            // playerStats[match.white] = { ...white, draw: white.draw + 1 };
+            white.draw += 1;
+          }
+
+          const black = playerStats[match.black];
+          if (black) {
+            // playerStats[match.black] = { ...black, draw: black.draw + 1 };
+            black.draw += 1;
+          }
+          break;
+        }
+        case MatchResult.didNotStart: {
+          const white = playerStats[match.white];
+          if (white && match.white !== 'bye') {
+            // playerStats[match.white] = { ...white, bye: white.bye + 1 };
+            white.bye += 1;
+          }
+
+          const black = playerStats[match.black];
+          if (black && match.black !== 'bye') {
+            // playerStats[match.black] = { ...black, bye: black.bye + 1 };
+            black.bye += 1;
+          }
+        }
       }
 
       if (match.white !== 'bye' && match.black !== 'bye') {
-        playerStats[match.white].previousRating = match.whiteRating;
-        playerStats[match.black].previousRating = match.blackRating;
+        const white = playerStats[match.white];
+        const black = playerStats[match.black];
 
-        playerStats[match.white].rating =
-          match.newWhiteRating || match.whiteRating;
-        playerStats[match.black].rating =
-          match.newBlackRating || match.blackRating;
-
-        playerStats[match.white].matchesPlayed = match.whiteMatchesPlayed;
-        playerStats[match.black].matchesPlayed = match.blackMatchesPlayed;
-
-        playerStats[match.white].whitePlayed += 1;
-
-        if (playerStats[match.white].opponents[match.black]) {
-          playerStats[match.white].opponents[match.black] += 1;
-        } else {
-          playerStats[match.white].opponents[match.black] = 1;
+        if (white) {
+          white.previousRating = match.whiteRating;
+          white.rating = match.newWhiteRating || match.whiteRating;
+          white.matchesPlayed = match.whiteMatchesPlayed;
+          white.whitePlayed += 1;
         }
 
-        if (playerStats[match.black].opponents[match.white]) {
-          playerStats[match.black].opponents[match.white] += 1;
-        } else {
-          playerStats[match.black].opponents[match.white] = 1;
+        if (black) {
+          black.previousRating = match.blackRating;
+          black.rating = match.newBlackRating || match.blackRating;
+          black.matchesPlayed = match.blackMatchesPlayed;
+        }
+
+        // if (white) {
+        //   playerStats[match.white] = {
+        //     ...white,
+        //     previousRating: match.whiteRating,
+        //     rating: match.newWhiteRating || match.whiteRating,
+        //     matchesPlayed: match.whiteMatchesPlayed,
+        //     whitePlayed: white.whitePlayed + 1
+        //   };
+        // }
+        //
+        // const black = playerStats[match.black];
+        // if (black) {
+        //   playerStats[match.black] = {
+        //     ...black,
+        //     previousRating: match.blackRating,
+        //     rating: match.newBlackRating || match.blackRating,
+        //     matchesPlayed: match.blackMatchesPlayed
+        //   };
+        // }
+
+        if (white) {
+          if (playerStats[match.white]?.opponents[match.black]) {
+            white.opponents[match.black] += 1;
+          } else {
+            white.opponents[match.black] = 1;
+          }
+        }
+
+        if (black) {
+          if (playerStats[match.black]?.opponents[match.white]) {
+            black.opponents[match.white] += 1;
+          } else {
+            black.opponents[match.white] = 1;
+          }
         }
       }
     }
@@ -114,9 +164,12 @@ export const getPlayerStats = (
 
   for (const playerId of Object.keys(playerStats)) {
     const player = playerStats[playerId];
-
-    playerStats[playerId].score =
-      player.win + player.draw * 0.5 + player.bye * 0.5;
+    if (player) {
+      playerStats[playerId] = {
+        ...player,
+        score: player.win + player.draw * 0.5 + player.bye * 0.5
+      };
+    }
   }
 
   return playerStats;
@@ -145,7 +198,7 @@ const findByePlayer = (stats: PlayerStats): string | undefined => {
   }
 };
 
-const createMatch = (
+export const createMatch = (
   playerId: string,
   opponentId: string,
   stats: PlayerStats,
@@ -156,11 +209,11 @@ const createMatch = (
   const player = stats[playerId];
   const opponent = stats[opponentId];
 
-  const whitePlayed = player.whitePlayed;
-  const opponentWhitePlayed = opponent.whitePlayed;
+  const whitePlayed = player?.whitePlayed || 0;
+  const opponentWhitePlayed = opponent?.whitePlayed || 0;
 
   const white =
-    whitePlayed === opponent.whitePlayed
+    whitePlayed === opponentWhitePlayed
       ? boardTiebreakSeed % 2 === 1
         ? playerId
         : opponentId
@@ -177,22 +230,28 @@ const createMatch = (
     black,
     whiteScore: 0,
     blackScore: 0,
-    whiteRating: stats[white].rating,
-    blackRating: stats[black].rating,
-    whiteMatchesPlayed: stats[white].matchesPlayed + 1,
-    blackMatchesPlayed: stats[black].matchesPlayed + 1,
+    whiteRating: stats[white]?.rating || 0,
+    blackRating: stats[black]?.rating || 0,
+    whiteMatchesPlayed: (stats[white]?.matchesPlayed || 0) + 1,
+    blackMatchesPlayed: (stats[black]?.matchesPlayed || 0) + 1,
     boardNumber,
     result: MatchResult.didNotStart,
     completed: false
   };
 };
 
+export enum EPairingAlgorithm {
+  Swiss = 'Swiss',
+  Rating = 'Rating'
+}
+
 export const createNewRound = (
   tournamentId: string,
   stats: PlayerStats, // A bunch of useful info about the players and their performance
   currentPlayers: string[], // Current players in the tournament
   maxPunchDown: number, // Variable used for pairing
-  boardTiebreakSeed: number // Seed number used for tie breaking starting color
+  boardTiebreakSeed: number, // Seed number used for tie breaking starting color
+  pairingAlgorithm: EPairingAlgorithm
 ): Round => {
   // Filter out players that are no longer in the tournament
   for (const id of Object.keys(stats)) {
@@ -204,83 +263,14 @@ export const createNewRound = (
   // Get the bye player - It's easier to do this first so we can exclude them from pairing logic
   const byePlayer = findByePlayer(stats);
 
-  // A bunch of janky accelerated swiss code... **************************** START
-  const sortedPlayers: PlayerStub[] = Object.entries(stats)
-    .map(([id, value]) => ({
-      id,
-      score: value.score,
-      rating: value.rating
-    }))
-    .sort((a, b) => b.score - a.score || b.rating - a.rating)
-    .filter(player => player.id !== byePlayer); // Exclude bye player
-
-  const groups: string[][] = Object.values(
-    groupBy(sortedPlayers, player => player.score)
-  )
-    .sort((a, b) => b[0].score - a[0].score)
-    .map(group => group.map(player => player.id));
-
-  const batchedGroups = batchGroups(groups, 2 * maxPunchDown);
-
-  const parallelGroups = batchedGroups.map(group => swissSplit(group));
-
-  const adjustedParallelGroups = fillGaps(parallelGroups).filter(
-    group => group[0].length !== 0
+  const matches = getMatches(
+    tournamentId,
+    stats,
+    maxPunchDown,
+    boardTiebreakSeed,
+    byePlayer,
+    pairingAlgorithm
   );
-
-  let properOrder: string[] = [];
-
-  adjustedParallelGroups.forEach(parallelGroup => {
-    properOrder = properOrder.concat(parallelGroup[0]);
-  });
-
-  adjustedParallelGroups.forEach(parallelGroup => {
-    properOrder = properOrder.concat(parallelGroup[1]);
-  });
-
-  const candidates: Candidate[] = properOrder.map((id, index) => ({
-    id,
-    index,
-    targetIndex:
-      index -
-      ((index >= properOrder.length / 2 ? 1 : -1) * properOrder.length) / 2
-  }));
-
-  let boardNumber = 0;
-  const matches: Match[] = [];
-
-  while (candidates.length > 0) {
-    const player = candidates.sort((a, b) => a.index - b.index).shift();
-
-    if (player) {
-      const opponent = candidates
-        .sort(
-          (a, b) =>
-            (stats[a.id].opponents[player.id] || 0) -
-              (stats[b.id].opponents[player.id] || 0) ||
-            Math.abs(a.index - player.targetIndex) -
-              Math.abs(b.index - player.targetIndex) ||
-            a.index - b.index
-        )
-        .shift();
-
-      if (opponent) {
-        boardNumber += 1;
-
-        matches.push(
-          createMatch(
-            player.id,
-            opponent.id,
-            stats,
-            boardNumber,
-            tournamentId,
-            boardTiebreakSeed + boardNumber
-          )
-        );
-      }
-    }
-  }
-  // A bunch of janky accelerated swiss code... **************************** END
 
   if (byePlayer) {
     matches.push({
@@ -290,23 +280,50 @@ export const createNewRound = (
       black: 'bye',
       whiteScore: 0,
       blackScore: 0,
-      whiteRating: stats[byePlayer].rating,
+      whiteRating: stats[byePlayer]?.rating || 0,
       blackRating: 0,
-      whiteMatchesPlayed: stats[byePlayer].matchesPlayed,
+      whiteMatchesPlayed: stats[byePlayer]?.matchesPlayed || 0,
       blackMatchesPlayed: 0,
-      boardNumber: boardNumber + 1,
+      boardNumber: (matches[matches.length - 1]?.boardNumber || 0) + 1,
       result: MatchResult.didNotStart,
       completed: false
     });
   }
 
-  // Need to return a Round which is basically na array of matches
+  // Need to return a Round which is basically an array of matches
 
   return {
     _id: new mongoose.Types.ObjectId().toString(),
     completed: false,
     matches
   };
+};
+
+const getMatches = (
+  tournamentId: string,
+  stats: PlayerStats,
+  maxPunchDown: number,
+  boardTiebreakSeed: number,
+  byePlayer: Maybe<string>,
+  pairingAlgorithm: EPairingAlgorithm
+): Match[] => {
+  switch (pairingAlgorithm) {
+    case EPairingAlgorithm.Swiss:
+      return getSwissMatches(
+        tournamentId,
+        stats,
+        maxPunchDown,
+        boardTiebreakSeed,
+        byePlayer
+      );
+    case EPairingAlgorithm.Rating:
+      return getRatingMatches(
+        tournamentId,
+        stats,
+        boardTiebreakSeed,
+        byePlayer
+      );
+  }
 };
 
 export const createStandings = (stats: PlayerStats): Standing[] => {
@@ -325,3 +342,139 @@ export const createStandings = (stats: PlayerStats): Standing[] => {
     .sort((a, b) => b.score - a.score || b.rating - a.rating)
     .map((standing, index) => ({ ...standing, position: index + 1 }));
 };
+
+// interface IFenMap {
+//   fen: string;
+//   advantage: number;
+// }
+//
+// const a: IFenMap[] = [
+//   {
+//     fen: 'rnbqkbnr/pppp1ppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+//     advantage: 2.4
+//   },
+//   {
+//     fen: 'rnbqkbnr/1ppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+//     advantage: 1.7
+//   },
+//   {
+//     fen: 'rnbqkbnr/1ppppppp/p7/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+//     advantage: 0.0
+//   },
+//   {
+//     fen: 'rnbqkb1r/pppppppp/5n2/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+//     advantage: -0.3
+//   },
+//   {
+//     fen: 'r2qkbnr/pbpppppp/1pn5/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+//     advantage: -0.4
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/1PPPPPPP/RNBQKBNR w KQkq - 0 1',
+//     advantage: -0.7
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/6K1/PPPPPPPP/RNBQ1BNR w q - 0 1',
+//     advantage: -0.8
+//   },
+//   {
+//     fen: 'rnbqkbnr/ppp2ppp/8/3pp3/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+//     advantage: -1
+//   },
+//   {
+//     fen: 'rnbqk2r/ppppppbp/5np1/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+//     advantage: -1.2
+//   },
+//   {
+//     fen: 'rn1qk1nr/pbppppbp/1p4p1/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+//     advantage: -1.5
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPP1PPPP/RNBQKBNR w KQkq - 0 1',
+//     advantage: -1.5
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/4K3/PPPPPPPP/RNBQ1BNR w kq - 0 1',
+//     advantage: -1.7
+//   },
+//   {
+//     fen: 'rn1qk1nr/ppp2ppp/8/2bppb2/8/8/PPPPPPPP/RNBQKBNR w q - 0 1',
+//     advantage: -1.7
+//   },
+//   {
+//     fen: 'rnbqkbnr/pp4pp/8/2pppp2/8/8/PPPPPPPP/RNBQKBNR w q - 0 1',
+//     advantage: -2.1
+//   },
+//   {
+//     fen: 'rnbq1rk1/ppppppbp/5np1/8/8/8/PPPPPPPP/RNBQKBNR w q - 0 1',
+//     advantage: -2.3
+//   },
+//   {
+//     fen: 'rnbqkbnr/1p4pp/p7/2pppp2/8/8/PPPPPPPP/RNBQKBNR w q - 0 1',
+//     advantage: -2.8
+//   },
+//   {
+//     fen: 'rnbqkb1r/pp4pp/5n2/2pppp2/8/8/PPPPPPPP/RNBQKBNR w q - 0 1',
+//     advantage: -3.2
+//   },
+//   {
+//     fen: 'rn1qk1nr/pp4pp/3bb3/2pppp2/8/8/PPPPPPPP/RNBQKBNR w q - 0 1',
+//     advantage: -3.3
+//   },
+//   {
+//     fen: '4k3/8/rnbq1bnr/pppppppp/8/8/PPPPPPPP/RNBQKBNR w - - 0 1',
+//     advantage: -3.8
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/4K3/8/8/PPPPPPPP/RNBQ1BNR w kq - 0 1',
+//     advantage: -4.2
+//   },
+//   {
+//     fen: 'rnbqkbnr/8/8/8/pppppppp/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+//     advantage: -5.9
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PP3PPP/RNBQKBNR w Qkq - 0 1',
+//     advantage: -6.2
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN1 w Qkq - 0 1',
+//     advantage: -6.6
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R1BQKBNR w KQkq - 0 1',
+//     advantage: -7.6
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PP4PP/RNBQKBNR w Qkq - 0 1',
+//     advantage: -7.8
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKB1R w Qkq - 0 1',
+//     advantage: -8.2
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R1BQKBNR w Qkq - 0 1',
+//     advantage: -8.5
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/P7/RNBQKBNR w Qkq - 0 1',
+//     advantage: -8.7
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQK1NR w Qkq - 0 1',
+//     advantage: -9.1
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/P5PP/RNBQKBNR w Qkq - 0 1',
+//     advantage: -9.2 //
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/8/RNBQKBNR w Qkq - 0 1',
+//     advantage: -9.4
+//   },
+//   {
+//     fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KBNR w KQkq - 0 1',
+//     advantage: -12.5
+//   }
+// ];

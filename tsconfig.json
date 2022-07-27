@@ -18,6 +18,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "noUncheckedIndexedAccess": true
   },
   "include": ["./src"]
 }
