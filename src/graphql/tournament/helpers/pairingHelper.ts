@@ -11,6 +11,7 @@ interface PlayerStat {
   draw: number;
   bye: number;
   score: number;
+  pairingScore: number;
   rating: number;
   previousRating: number;
   matchesPlayed: number;
@@ -37,6 +38,7 @@ export const getPlayerStats = (
       draw: 0,
       bye: 0,
       score: 0,
+      pairingScore: 0,
       previousRating: player.rating,
       rating: player.rating,
       matchesPlayed: player.matchesPlayed,
@@ -123,26 +125,6 @@ export const getPlayerStats = (
           black.matchesPlayed = match.blackMatchesPlayed;
         }
 
-        // if (white) {
-        //   playerStats[match.white] = {
-        //     ...white,
-        //     previousRating: match.whiteRating,
-        //     rating: match.newWhiteRating || match.whiteRating,
-        //     matchesPlayed: match.whiteMatchesPlayed,
-        //     whitePlayed: white.whitePlayed + 1
-        //   };
-        // }
-        //
-        // const black = playerStats[match.black];
-        // if (black) {
-        //   playerStats[match.black] = {
-        //     ...black,
-        //     previousRating: match.blackRating,
-        //     rating: match.newBlackRating || match.blackRating,
-        //     matchesPlayed: match.blackMatchesPlayed
-        //   };
-        // }
-
         if (white) {
           if (playerStats[match.white]?.opponents[match.black]) {
             white.opponents[match.black] += 1;
@@ -167,7 +149,8 @@ export const getPlayerStats = (
     if (player) {
       playerStats[playerId] = {
         ...player,
-        score: player.win + player.draw * 0.5 + player.bye * 0.5
+        score: player.win + player.draw + player.bye,
+        pairingScore: player.win + player.draw
       };
     }
   }
@@ -182,12 +165,15 @@ const findByePlayer = (stats: PlayerStats): string | undefined => {
     const sortedPlayers = entries
       .map(([id, value]) => ({
         id,
-        score: value.score,
+        pairingScore: value.pairingScore,
         rating: value.rating,
         bye: value.bye
       }))
       .sort(
-        (a, b) => b.bye - a.bye || b.score - a.score || b.rating - a.rating
+        (a, b) =>
+          b.bye - a.bye ||
+          b.pairingScore - a.pairingScore ||
+          b.rating - a.rating
       );
 
     const player = sortedPlayers.pop();
@@ -291,7 +277,6 @@ export const createNewRound = (
   }
 
   // Need to return a Round which is basically an array of matches
-
   return {
     _id: new mongoose.Types.ObjectId().toString(),
     completed: false,

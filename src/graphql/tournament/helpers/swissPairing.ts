@@ -71,7 +71,7 @@ export const getSwissMatches = (
   const sortedPlayers: PlayerStub[] = Object.entries(stats)
     .map(([id, value]) => ({
       id,
-      score: value.score,
+      score: value.pairingScore,
       rating: value.rating
     }))
     .sort((a, b) => b.score - a.score || b.rating - a.rating)

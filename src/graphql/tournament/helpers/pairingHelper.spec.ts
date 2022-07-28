@@ -5,164 +5,162 @@ import {
   EPairingAlgorithm,
   getPlayerStats
 } from 'graphql/tournament/helpers/pairingHelper';
-import { Round, RoundPreview } from '../TournamentTypes';
-import { MatchResult } from '../../match/MatchTypes';
+import { Round } from '../TournamentTypes';
 import { Role, User } from '../../user/UserTypes';
+import { MatchResult } from '../../match/MatchTypes';
 
-it('Should pair players', () => {
-  const a = true;
-
+it('Should pair players using the swiss algorithm', () => {
+  const rounds: Round[] = [];
   const tournamentId = '123';
-  const stats = getPlayerStats(rounds, players);
+  const maxPunchDown = 3;
+  const pairingAlgorithm = EPairingAlgorithm.Swiss;
 
-  const round = createNewRound(
+  let stats = getPlayerStats(rounds, players);
+
+  const processRound = (round: Round) => {
+    // set winners
+    round.matches = round.matches.map(match =>
+      match.black !== 'bye'
+        ? {
+            ...match,
+            result:
+              match.whiteRating > match.blackRating
+                ? MatchResult.whiteWon
+                : MatchResult.blackWon,
+            completed: true
+          }
+        : match
+    );
+
+    rounds.push(round);
+    stats = getPlayerStats(rounds, players);
+  };
+
+  const round1 = createNewRound(
     tournamentId,
     stats,
     players.map(player => player._id),
-    3,
+    maxPunchDown,
     0,
-    EPairingAlgorithm.Swiss
+    pairingAlgorithm
   );
 
-  console.log('here');
+  expect(round1.matches[0]?.white).to.be.equal('618c971dc8725e04b058948d');
+  expect(round1.matches[0]?.black).to.be.equal('618c913ac8725e04b058945c');
+  expect(round1.matches[1]?.white).to.be.equal('618c9cb2c8725e04b05894ef');
+  expect(round1.matches[1]?.black).to.be.equal('618c9851c8725e04b05894a0');
+  expect(round1.matches[2]?.white).to.be.equal('618c9296c8725e04b0589468');
+  expect(round1.matches[2]?.black).to.be.equal('618c9b09c8725e04b05894c9');
+  expect(round1.matches[3]?.white).to.be.equal('6191a4a3acdef1ddd09a3c8c');
+  expect(round1.matches[3]?.black).to.be.equal('618c9764c8725e04b0589495');
+  expect(round1.matches[4]?.white).to.be.equal('618c99b4c8725e04b05894af');
+  expect(round1.matches[4]?.black).to.be.equal('618f4534f283c2a963366e85');
+  expect(round1.matches[5]?.white).to.be.equal('618c9ab9c8725e04b05894bf');
+  expect(round1.matches[5]?.black).to.be.equal('bye');
 
-  // todo finish this
+  processRound(round1);
 
-  expect(round.matches[0]).to.be.equal(true);
+  const round2 = createNewRound(
+    tournamentId,
+    stats,
+    players.map(player => player._id),
+    maxPunchDown,
+    0,
+    pairingAlgorithm
+  );
+
+  processRound(round2);
+
+  const round3 = createNewRound(
+    tournamentId,
+    stats,
+    players.map(player => player._id),
+    maxPunchDown,
+    0,
+    pairingAlgorithm
+  );
 });
 
-// it('This pulls data from a real example tournament', async () => {
-//   await connectToDb();
-//
-//   const matches = await MatchModel.find({
-//     _id: { $in: roundPreviews.flatMap(preview => preview.matches) }
-//   }).then(mapToMatches);
-//
-//   const userIds = uniq(
-//     matches
-//       .flatMap(match => [match.white, match.black])
-//       .concat(playerIds)
-//       .filter(id => id !== 'bye')
-//   );
-//
-//   const players = await UserModel.find({
-//     _id: { $in: userIds }
-//   }).then(mapToUsers);
-//
-//   const rounds = roundPreviews.map(preview => ({
-//     ...preview,
-//     matches: preview.matches.map(
-//       id => find(matches, match => match._id === id) as Match
-//     )
-//   }));
-//
-//   const tournamentId = '123';
-//   const stats = getPlayerStats(rounds, players);
-//
-//   const round = createNewRound(
-//     tournamentId,
-//     stats,
-//     players.map(player => player._id.toString()),
-//     2,
-//     0,
-//     EPairingAlgorithm.Swiss
-//   );
-//
-//   console.log('done');
-// }).timeout(9999999);
+it('Should pair players using rating based algorithm', () => {
+  const rounds: Round[] = [];
+  const tournamentId = '123';
+  const maxPunchDown = 3;
+  const pairingAlgorithm = EPairingAlgorithm.Rating;
 
-const rounds: Round[] = [
-  // {
-  //   completed: true,
-  //   matches: [
-  //     {
-  //       _id: '619fe1b49e9ed534c7897a24',
-  //       tournamentId: '618ddcf55f41c850d80138fc',
-  //       white: '618c9851c8725e04b05894a0',
-  //       black: '618c913ac8725e04b058945c',
-  //       whiteScore: 0,
-  //       blackScore: 0,
-  //       whiteRating: 2300,
-  //       blackRating: 2300,
-  //       whiteMatchesPlayed: 1,
-  //       blackMatchesPlayed: 1,
-  //       boardNumber: 0,
-  //       result: MatchResult.whiteWon,
-  //       completed: true,
-  //       newBlackRating: 1900,
-  //       newWhiteRating: 2700
-  //     },
-  //     {
-  //       _id: '619fe1b49e9ed534c7897a25',
-  //       tournamentId: '618ddcf55f41c850d80138fc',
-  //       white: '618c9cb2c8725e04b05894ef',
-  //       black: '618c971dc8725e04b058948d',
-  //       whiteScore: 0,
-  //       blackScore: 0,
-  //       whiteRating: 2300,
-  //       blackRating: 2300,
-  //       whiteMatchesPlayed: 1,
-  //       blackMatchesPlayed: 1,
-  //       boardNumber: 1,
-  //       result: MatchResult.blackWon,
-  //       completed: true
-  //     },
-  //     {
-  //       _id: '619fe1b49e9ed534c7897a26',
-  //       tournamentId: '618ddcf55f41c850d80138fc',
-  //       white: '618c99b4c8725e04b05894af',
-  //       black: '618c9296c8725e04b0589468',
-  //       whiteScore: 0,
-  //       blackScore: 0,
-  //       whiteRating: 1403,
-  //       blackRating: 1403,
-  //       whiteMatchesPlayed: 1,
-  //       blackMatchesPlayed: 1,
-  //       boardNumber: 2,
-  //       result: MatchResult.draw,
-  //       completed: true
-  //     },
-  //     {
-  //       _id: '619fe1b49e9ed534c7897a27',
-  //       tournamentId: '618ddcf55f41c850d80138fc',
-  //       white: '618c9b09c8725e04b05894c9',
-  //       black: '618c9764c8725e04b0589495',
-  //       whiteScore: 0,
-  //       blackScore: 0,
-  //       whiteRating: 1403,
-  //       blackRating: 1403,
-  //       whiteMatchesPlayed: 0,
-  //       blackMatchesPlayed: 1,
-  //       boardNumber: 3,
-  //       result: MatchResult.blackWon,
-  //       completed: true
-  //     },
-  //     {
-  //       _id: '619fe1b49e9ed534c7897a28',
-  //       tournamentId: '618ddcf55f41c850d80138fc',
-  //       white: '618f4534f283c2a963366e85',
-  //       black: 'bye',
-  //       whiteScore: 0,
-  //       blackScore: 0,
-  //       whiteRating: 1403,
-  //       blackRating: 0,
-  //       whiteMatchesPlayed: 0,
-  //       blackMatchesPlayed: 0,
-  //       boardNumber: 5,
-  //       result: MatchResult.didNotStart,
-  //       completed: true
-  //     }
-  //   ],
-  //   _id: '619fe1b49e9ed534c7897a29'
-  // }
-];
+  let stats = getPlayerStats(rounds, players);
+
+  const processRound = (round: Round) => {
+    // set winners
+    round.matches = round.matches.map(match =>
+      match.black !== 'bye'
+        ? {
+            ...match,
+            result:
+              match.whiteRating > match.blackRating
+                ? MatchResult.whiteWon
+                : MatchResult.blackWon,
+            completed: true
+          }
+        : match
+    );
+
+    rounds.push(round);
+    stats = getPlayerStats(rounds, players);
+  };
+
+  const round1 = createNewRound(
+    tournamentId,
+    stats,
+    players.map(player => player._id),
+    maxPunchDown,
+    0,
+    pairingAlgorithm
+  );
+
+  // expect(round1.matches[0]?.white).to.be.equal('618c971dc8725e04b058948d');
+  // expect(round1.matches[0]?.black).to.be.equal('618c913ac8725e04b058945c');
+  // expect(round1.matches[1]?.white).to.be.equal('618c9cb2c8725e04b05894ef');
+  // expect(round1.matches[1]?.black).to.be.equal('618c9851c8725e04b05894a0');
+  // expect(round1.matches[2]?.white).to.be.equal('618c9296c8725e04b0589468');
+  // expect(round1.matches[2]?.black).to.be.equal('618c9b09c8725e04b05894c9');
+  // expect(round1.matches[3]?.white).to.be.equal('6191a4a3acdef1ddd09a3c8c');
+  // expect(round1.matches[3]?.black).to.be.equal('618c9764c8725e04b0589495');
+  // expect(round1.matches[4]?.white).to.be.equal('618c99b4c8725e04b05894af');
+  // expect(round1.matches[4]?.black).to.be.equal('618f4534f283c2a963366e85');
+  // expect(round1.matches[5]?.white).to.be.equal('618c9ab9c8725e04b05894bf');
+  // expect(round1.matches[5]?.black).to.be.equal('bye');
+
+  processRound(round1);
+
+  const round2 = createNewRound(
+    tournamentId,
+    stats,
+    players.map(player => player._id),
+    maxPunchDown,
+    0,
+    pairingAlgorithm
+  );
+
+  processRound(round2);
+
+  const round3 = createNewRound(
+    tournamentId,
+    stats,
+    players.map(player => player._id),
+    maxPunchDown,
+    0,
+    pairingAlgorithm
+  );
+
+  console.log('');
+});
 
 const players: User[] = [
   {
     _id: '618c913ac8725e04b058945c',
     phone: '+180232420',
     token:
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IisxODAyMzI0MjAiLCJpYXQiOjE2MzY2MDIxNzAsImV4cCI6MTYzODUwMjk3MH0.sMus1dQJen0KN6TRerAatOGGZfKc9INbSHG9pfaRb-0',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eJpZCI6IisxODAyMzI0MjAiLCJpYXQiOjE2MzY2MDIxNzAsImV4cCI6MTYzODUwMjk3MH0.sMus1dQJen0KN6TRerAatOGGZfKc9INbSHG9pfaRb-0',
     role: Role.admin,
     firstName: 'Marc',
     lastName: 'Jiang',
@@ -178,7 +176,7 @@ const players: User[] = [
     firstName: 'Vaugn',
     lastName: 'Stone',
     rating: 2600,
-    matchesPlayed: 1
+    matchesPlayed: 0
   },
   {
     _id: '618c971dc8725e04b058948d',
@@ -189,7 +187,7 @@ const players: User[] = [
     firstName: 'Micahel',
     lastName: 'Williams',
     rating: 2800,
-    matchesPlayed: 1
+    matchesPlayed: 0
   },
   {
     _id: '618c9764c8725e04b0589495',
@@ -200,7 +198,7 @@ const players: User[] = [
     rating: 1403,
     firstName: 'Nate',
     lastName: 'Carter',
-    matchesPlayed: 1
+    matchesPlayed: 0
   },
   {
     _id: '618c9851c8725e04b05894a0',
@@ -211,7 +209,7 @@ const players: User[] = [
     firstName: 'Eric',
     lastName: 'Kurtz',
     rating: 2700,
-    matchesPlayed: 1
+    matchesPlayed: 0
   },
   {
     _id: '618c99b4c8725e04b05894af',
@@ -221,8 +219,8 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Jeremy',
     lastName: 'Seagull',
-    rating: 1403,
-    matchesPlayed: 1
+    rating: 1250,
+    matchesPlayed: 0
   },
   {
     _id: '618c9ab9c8725e04b05894bf',
@@ -233,7 +231,7 @@ const players: User[] = [
     firstName: 'Amy',
     lastName: 'Smith',
     rating: 600,
-    matchesPlayed: 0.0
+    matchesPlayed: 0
   },
   {
     _id: '618c9b09c8725e04b05894c9',
@@ -255,7 +253,7 @@ const players: User[] = [
     firstName: 'Tim',
     lastName: 'Mccley',
     rating: 2200,
-    matchesPlayed: 1
+    matchesPlayed: 0
   },
   {
     _id: '618f4534f283c2a963366e85',
@@ -265,7 +263,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Alec',
     lastName: 'Carrier',
-    rating: 1403,
+    rating: 803,
     matchesPlayed: 0
   },
   {
@@ -277,6 +275,6 @@ const players: User[] = [
     rating: 1000,
     firstName: 'dfdfg',
     lastName: 'dfgdg',
-    matchesPlayed: 0.0
+    matchesPlayed: 0
   }
 ];
