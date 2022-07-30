@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Round, Standing } from '../TournamentTypes';
+import { EPairingAlgorithm, Round, Standing } from '../TournamentTypes';
 import { Match, MatchResult } from '../../match/MatchTypes';
 import { User } from '../../user/UserTypes';
 import { getSwissMatches } from './swissPairing';
@@ -225,11 +225,6 @@ export const createMatch = (
     completed: false
   };
 };
-
-export enum EPairingAlgorithm {
-  Swiss = 'Swiss',
-  Rating = 'Rating'
-}
 
 export const createNewRound = (
   tournamentId: string,

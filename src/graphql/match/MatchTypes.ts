@@ -65,6 +65,7 @@ const matchType: DocumentNode = gql`
     name: String
     date: Date
     status: TournamentStatus
+    pairingAlgorithm: PairingAlgorithm
     isDeleted: Boolean
   }
 `;

@@ -8,6 +8,11 @@ export enum TournamentStatus {
   completed = 'completed'
 }
 
+export enum EPairingAlgorithm {
+  Swiss = 'swiss',
+  Rating = 'rating'
+}
+
 export type Standing = {
   _id: string;
   userId: string;
@@ -47,6 +52,7 @@ export type Tournament = {
   totalRounds: number;
   tiebreakSeed: number;
   standings: Standing[];
+  pairingAlgorithm: string;
   isDeleted: boolean;
 };
 
@@ -73,6 +79,11 @@ const TournamentType: DocumentNode = gql`
     created
     active
     completed
+  }
+
+  enum PairingAlgorithm {
+    swiss
+    rating
   }
 
   type Standing {
@@ -102,6 +113,7 @@ const TournamentType: DocumentNode = gql`
     totalRounds: Int!
     standings: [Standing!]!
     isDeleted: Boolean!
+    pairingAlgorithm: PairingAlgorithm!
     location: String
   }
 `;

@@ -1,6 +1,10 @@
 import * as mongoose from 'mongoose';
 import moment from 'moment';
-import { Tournament, TournamentStatus } from './TournamentTypes';
+import {
+  EPairingAlgorithm,
+  Tournament,
+  TournamentStatus
+} from './TournamentTypes';
 
 export interface TournamentMongo
   extends Omit<Tournament, '_id'>,
@@ -91,6 +95,11 @@ const Schema = new mongoose.Schema(
       type: Boolean,
       default: false,
       required: true
+    },
+    pairingAlgorithm: {
+      type: String,
+      required: true,
+      default: EPairingAlgorithm.Swiss
     },
     location: {
       type: String

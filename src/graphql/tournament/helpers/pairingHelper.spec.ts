@@ -2,10 +2,9 @@ import { expect } from 'chai';
 
 import {
   createNewRound,
-  EPairingAlgorithm,
   getPlayerStats
 } from 'graphql/tournament/helpers/pairingHelper';
-import { Round } from '../TournamentTypes';
+import { EPairingAlgorithm, Round } from '../TournamentTypes';
 import { Role, User } from '../../user/UserTypes';
 import { MatchResult } from '../../match/MatchTypes';
 

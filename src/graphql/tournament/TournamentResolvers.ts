@@ -1,6 +1,7 @@
 import { find, uniq } from 'lodash';
 import TournamentModel, { TournamentMongo } from './TournamentModel';
 import {
+  EPairingAlgorithm,
   Round,
   RoundPreview,
   RoundWithUserInfo,
@@ -10,7 +11,6 @@ import {
 import {
   createNewRound,
   createStandings,
-  EPairingAlgorithm,
   getPlayerStats
 } from './helpers/pairingHelper';
 import UserModel from '../user/UserModel';
@@ -42,6 +42,7 @@ type UpdateTournamentPayload = {
   name?: string;
   date?: Date;
   status?: TournamentStatus;
+  pairingAlgorithm?: EPairingAlgorithm;
   isDeleted?: boolean;
 };
 
@@ -418,7 +419,7 @@ const resolvers = {
       tournament.players,
       maxPunchDown,
       tournament.tiebreakSeed + rounds.length,
-      EPairingAlgorithm.Rating
+      tournament.pairingAlgorithm as EPairingAlgorithm // can be parsed better
     );
 
     const updatedRounds = tournament.rounds.map(round => ({

@@ -13,7 +13,7 @@ export const getRatingMatches = (
   boardTiebreakSeed: number,
   byePlayer: Maybe<string>
 ): Match[] => {
-  let candidates: PlayerStub[] = Object.entries(stats)
+  let players: PlayerStub[] = Object.entries(stats)
     .map(([id, value]) => ({
       id,
       score: value.score,
@@ -24,23 +24,29 @@ export const getRatingMatches = (
 
   let boardNumber = 0;
   const matches: Match[] = [];
+  const startingLength = players.length;
 
-  while (candidates.length > 0) {
-    const player = candidates.shift();
+  while (players.length > 0) {
+    const player = players.shift();
 
     if (player) {
-      const opponent = [...candidates].sort((a, b) => {
+      const ratingBuffer =
+        ((player.rating / 6) * players.length) / startingLength;
+
+      const opponent = [...players].sort((a, b) => {
         const statsA = stats[a.id];
         const statsB = stats[b.id];
 
         return (
           (statsA?.opponents[player.id] || 0) -
-            (statsB?.opponents[player.id] || 0) || b.rating - a.rating
+            (statsB?.opponents[player.id] || 0) ||
+          Math.abs(a.rating - player.rating + ratingBuffer) -
+            Math.abs(b.rating - player.rating + ratingBuffer)
         );
       })[0];
 
       if (opponent) {
-        candidates = candidates.filter(c => c.id !== opponent.id);
+        players = players.filter(player => player.id !== opponent.id);
 
         boardNumber += 1;
 
