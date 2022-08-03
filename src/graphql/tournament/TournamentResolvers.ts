@@ -44,6 +44,11 @@ type UpdateTournamentPayload = {
   status?: TournamentStatus;
   pairingAlgorithm?: EPairingAlgorithm;
   isDeleted?: boolean;
+  config?: {
+    totalRounds?: number;
+    maxPunchDown?: number;
+    performanceWeight?: number;
+  };
 };
 
 type JoinTournamentArgs = {
@@ -411,15 +416,11 @@ const resolvers = {
 
     const stats = getPlayerStats(rounds, players);
     const standings = createStandings(stats);
-    const maxPunchDown = Math.ceil(tournament.players.length / 12);
 
     const nextRound = createNewRound(
-      tournamentId,
+      tournament,
       stats,
-      tournament.players,
-      maxPunchDown,
-      tournament.tiebreakSeed + rounds.length,
-      tournament.pairingAlgorithm as EPairingAlgorithm // can be parsed better
+      tournament.tiebreakSeed + rounds.length
     );
 
     const updatedRounds = tournament.rounds.map(round => ({

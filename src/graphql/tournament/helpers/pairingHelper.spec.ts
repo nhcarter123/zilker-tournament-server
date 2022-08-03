@@ -4,15 +4,31 @@ import {
   createNewRound,
   getPlayerStats
 } from 'graphql/tournament/helpers/pairingHelper';
-import { EPairingAlgorithm, Round } from '../TournamentTypes';
+import {
+  EPairingAlgorithm,
+  Round,
+  Tournament,
+  TournamentStatus
+} from '../TournamentTypes';
 import { Role, User } from '../../user/UserTypes';
 import { MatchResult } from '../../match/MatchTypes';
 
 it('Should pair players using the swiss algorithm', () => {
   const rounds: Round[] = [];
-  const tournamentId = '123';
-  const maxPunchDown = 3;
-  const pairingAlgorithm = EPairingAlgorithm.Swiss;
+
+  const tournament: Tournament = {
+    _id: '123',
+    name: 'test',
+    date: new Date(),
+    status: TournamentStatus.active,
+    pairingAlgorithm: EPairingAlgorithm.Swiss,
+    config: { maxPunchDown: 3, performanceWeight: 0, totalRounds: 5 },
+    players: players.map(p => p._id),
+    rounds: [],
+    tiebreakSeed: 0,
+    standings: [],
+    isDeleted: false
+  };
 
   let stats = getPlayerStats(rounds, players);
 
@@ -35,14 +51,7 @@ it('Should pair players using the swiss algorithm', () => {
     stats = getPlayerStats(rounds, players);
   };
 
-  const round1 = createNewRound(
-    tournamentId,
-    stats,
-    players.map(player => player._id),
-    maxPunchDown,
-    0,
-    pairingAlgorithm
-  );
+  const round1 = createNewRound(tournament, stats, 0);
 
   expect(round1.matches[0]?.white).to.be.equal('618c971dc8725e04b058948d');
   expect(round1.matches[0]?.black).to.be.equal('618c913ac8725e04b058945c');
@@ -59,32 +68,29 @@ it('Should pair players using the swiss algorithm', () => {
 
   processRound(round1);
 
-  const round2 = createNewRound(
-    tournamentId,
-    stats,
-    players.map(player => player._id),
-    maxPunchDown,
-    0,
-    pairingAlgorithm
-  );
+  const round2 = createNewRound(tournament, stats, 0);
 
   processRound(round2);
 
-  const round3 = createNewRound(
-    tournamentId,
-    stats,
-    players.map(player => player._id),
-    maxPunchDown,
-    0,
-    pairingAlgorithm
-  );
+  const round3 = createNewRound(tournament, stats, 0);
 });
 
 it('Should pair players using rating based algorithm', () => {
   const rounds: Round[] = [];
-  const tournamentId = '123';
-  const maxPunchDown = 3;
-  const pairingAlgorithm = EPairingAlgorithm.Rating;
+
+  const tournament: Tournament = {
+    _id: '123',
+    name: 'test',
+    date: new Date(),
+    status: TournamentStatus.active,
+    pairingAlgorithm: EPairingAlgorithm.Swiss,
+    config: { maxPunchDown: 3, performanceWeight: 0, totalRounds: 5 },
+    players: [],
+    rounds: [],
+    tiebreakSeed: 0,
+    standings: [],
+    isDeleted: false
+  };
 
   let stats = getPlayerStats(rounds, players);
 
@@ -107,14 +113,7 @@ it('Should pair players using rating based algorithm', () => {
     stats = getPlayerStats(rounds, players);
   };
 
-  const round1 = createNewRound(
-    tournamentId,
-    stats,
-    players.map(player => player._id),
-    maxPunchDown,
-    0,
-    pairingAlgorithm
-  );
+  const round1 = createNewRound(tournament, stats, 0);
 
   // expect(round1.matches[0]?.white).to.be.equal('618c971dc8725e04b058948d');
   // expect(round1.matches[0]?.black).to.be.equal('618c913ac8725e04b058945c');
@@ -131,25 +130,11 @@ it('Should pair players using rating based algorithm', () => {
 
   processRound(round1);
 
-  const round2 = createNewRound(
-    tournamentId,
-    stats,
-    players.map(player => player._id),
-    maxPunchDown,
-    0,
-    pairingAlgorithm
-  );
+  const round2 = createNewRound(tournament, stats, 0);
 
   processRound(round2);
 
-  const round3 = createNewRound(
-    tournamentId,
-    stats,
-    players.map(player => player._id),
-    maxPunchDown,
-    0,
-    pairingAlgorithm
-  );
+  const round3 = createNewRound(tournament, stats, 0);
 
   console.log('');
 });

@@ -42,6 +42,12 @@ export type RoundPreview = {
   matches: string[];
 };
 
+interface IConfig {
+  totalRounds: number;
+  performanceWeight: number;
+  maxPunchDown: number;
+}
+
 export type Tournament = {
   _id: string;
   name: string;
@@ -49,8 +55,8 @@ export type Tournament = {
   status: TournamentStatus;
   players: string[];
   rounds: RoundPreview[];
-  totalRounds: number;
   tiebreakSeed: number;
+  config: IConfig;
   standings: Standing[];
   pairingAlgorithm: string;
   isDeleted: boolean;
@@ -86,6 +92,12 @@ const TournamentType: DocumentNode = gql`
     rating
   }
 
+  type Config {
+    totalRounds: Int!
+    performanceWeight: Int!
+    maxPunchDown: Int!
+  }
+
   type Standing {
     _id: ID!
     userId: String!
@@ -110,7 +122,7 @@ const TournamentType: DocumentNode = gql`
     status: TournamentStatus!
     players: [String!]!
     rounds: [RoundPreview!]!
-    totalRounds: Int!
+    config: Config!
     standings: [Standing!]!
     isDeleted: Boolean!
     pairingAlgorithm: PairingAlgorithm!

@@ -1,5 +1,10 @@
 import mongoose from 'mongoose';
-import { EPairingAlgorithm, Round, Standing } from '../TournamentTypes';
+import {
+  EPairingAlgorithm,
+  Round,
+  Standing,
+  Tournament
+} from '../TournamentTypes';
 import { Match, MatchResult } from '../../match/MatchTypes';
 import { User } from '../../user/UserTypes';
 import { getSwissMatches } from './swissPairing';
@@ -227,16 +232,13 @@ export const createMatch = (
 };
 
 export const createNewRound = (
-  tournamentId: string,
+  tournament: Tournament,
   stats: PlayerStats, // A bunch of useful info about the players and their performance
-  currentPlayers: string[], // Current players in the tournament
-  maxPunchDown: number, // Variable used for pairing
-  boardTiebreakSeed: number, // Seed number used for tie breaking starting color
-  pairingAlgorithm: EPairingAlgorithm
+  boardTiebreakSeed: number // Seed number used for tie breaking starting color
 ): Round => {
   // Filter out players that are no longer in the tournament
   for (const id of Object.keys(stats)) {
-    if (!currentPlayers.includes(id)) {
+    if (!tournament.players.includes(id)) {
       delete stats[id];
     }
   }
@@ -244,19 +246,12 @@ export const createNewRound = (
   // Get the bye player - It's easier to do this first so we can exclude them from pairing logic
   const byePlayer = findByePlayer(stats);
 
-  const matches = getMatches(
-    tournamentId,
-    stats,
-    maxPunchDown,
-    boardTiebreakSeed,
-    byePlayer,
-    pairingAlgorithm
-  );
+  const matches = getMatches(tournament, stats, boardTiebreakSeed, byePlayer);
 
   if (byePlayer) {
     matches.push({
       _id: new mongoose.Types.ObjectId().toString(),
-      tournamentId,
+      tournamentId: tournament._id,
       white: byePlayer,
       black: 'bye',
       whiteScore: 0,
@@ -280,28 +275,29 @@ export const createNewRound = (
 };
 
 const getMatches = (
-  tournamentId: string,
+  tournament: Tournament,
   stats: PlayerStats,
-  maxPunchDown: number,
   boardTiebreakSeed: number,
-  byePlayer: Maybe<string>,
-  pairingAlgorithm: EPairingAlgorithm
+  byePlayer: Maybe<string>
 ): Match[] => {
-  switch (pairingAlgorithm) {
+  switch (
+    tournament.pairingAlgorithm as EPairingAlgorithm // can be parsed better
+  ) {
     case EPairingAlgorithm.Swiss:
       return getSwissMatches(
-        tournamentId,
+        tournament._id,
         stats,
-        maxPunchDown,
         boardTiebreakSeed,
-        byePlayer
+        byePlayer,
+        tournament.config.maxPunchDown
       );
     case EPairingAlgorithm.Rating:
       return getRatingMatches(
-        tournamentId,
+        tournament._id,
         stats,
         boardTiebreakSeed,
-        byePlayer
+        byePlayer,
+        tournament.config.performanceWeight
       );
   }
 };

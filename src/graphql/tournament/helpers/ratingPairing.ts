@@ -11,13 +11,14 @@ export const getRatingMatches = (
   tournamentId: string,
   stats: PlayerStats,
   boardTiebreakSeed: number,
-  byePlayer: Maybe<string>
+  byePlayer: Maybe<string>,
+  performanceWeight: number
 ): Match[] => {
   let players: PlayerStub[] = Object.entries(stats)
     .map(([id, value]) => ({
       id,
       score: value.score,
-      rating: value.rating
+      rating: value.rating + value.pairingScore * 40 * performanceWeight
     }))
     .sort((a, b) => b.rating - a.rating)
     .filter(player => player.id !== byePlayer); // Exclude bye player

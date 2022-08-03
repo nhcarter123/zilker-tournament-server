@@ -14,8 +14,10 @@ interface Candidate {
   targetIndex: number;
 }
 
-export const batchGroups = (groups: string[][], maxPunchDown: number) =>
-  groups.flatMap(group => chunk(group, maxPunchDown));
+export const batchGroups = (
+  groups: string[][],
+  maxPunchDown: number
+): string[][] => groups.flatMap(group => chunk(group, maxPunchDown));
 
 export const swissSplit = (group: string[]) => {
   const halfLength = Math.ceil(group.length / 2);
@@ -63,9 +65,9 @@ interface IPair {
 export const getSwissMatches = (
   tournamentId: string,
   stats: PlayerStats,
-  maxPunchDown: number,
   boardTiebreakSeed: number,
-  byePlayer: Maybe<string>
+  byePlayer: Maybe<string>,
+  maxPunchDown: number
 ): Match[] => {
   // A bunch of janky accelerated swiss code... **************************** START
   const sortedPlayers: PlayerStub[] = Object.entries(stats)
@@ -83,7 +85,10 @@ export const getSwissMatches = (
     .sort((a, b) => (b[0] ? b[0].score : 0) - (a[0] ? a[0].score : 0))
     .map(group => group.map(player => player.id));
 
-  const batchedGroups = batchGroups(groups, 2 * maxPunchDown);
+  const batchedGroups =
+    maxPunchDown > 0
+      ? batchGroups(groups, 2 * Math.pow(2, 5 - maxPunchDown))
+      : groups;
 
   const parallelGroups = batchedGroups.map(group => swissSplit(group));
 

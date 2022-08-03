@@ -81,15 +81,27 @@ const Schema = new mongoose.Schema(
         }
       }
     ],
-    totalRounds: {
-      type: Number,
-      required: true,
-      default: 5
-    },
     tiebreakSeed: {
       type: Number,
       required: true,
       default: Math.random() > 0.5 ? 1 : 0
+    },
+    config: {
+      totalRounds: {
+        type: Number,
+        required: true,
+        default: 5
+      },
+      maxPunchDown: {
+        type: Number,
+        required: true,
+        default: 0
+      },
+      performanceWeight: {
+        type: Number,
+        required: true,
+        default: 0
+      }
     },
     isDeleted: {
       type: Boolean,

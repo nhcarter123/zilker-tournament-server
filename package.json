@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Zilker tournament web server",
   "author": "nhcarter123",
-  "license": "MIT",
+  "license": "GNU General Public License v3.0",
   "private": true,
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
