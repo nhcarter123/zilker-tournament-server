@@ -60,6 +60,7 @@ export type Tournament = {
   standings: Standing[];
   pairingAlgorithm: string;
   isDeleted: boolean;
+  organizationId: string;
 };
 
 const TournamentType: DocumentNode = gql`
@@ -127,6 +128,7 @@ const TournamentType: DocumentNode = gql`
     isDeleted: Boolean!
     pairingAlgorithm: PairingAlgorithm!
     location: String
+    organizationId: String!
   }
 `;
 

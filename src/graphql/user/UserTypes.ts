@@ -9,8 +9,9 @@ export interface User {
   photo?: string;
   rating: number;
   matchesPlayed: number;
-  token?: string;
   role: Role;
+  token?: string;
+  organizationId?: string;
 }
 
 export enum Role {
@@ -18,7 +19,7 @@ export enum Role {
   admin = 'admin'
 }
 
-const userType: DocumentNode = gql`
+const UserTypes: DocumentNode = gql`
   type User {
     _id: String
     firstName: String
@@ -27,8 +28,9 @@ const userType: DocumentNode = gql`
     photo: String
     rating: Int
     matchesPlayed: Int!
-    token: String
     role: Role!
+    token: String
+    organizationId: String
   }
 
   enum Role {
@@ -48,4 +50,4 @@ const userType: DocumentNode = gql`
   }
 `;
 
-export default userType;
+export default UserTypes;

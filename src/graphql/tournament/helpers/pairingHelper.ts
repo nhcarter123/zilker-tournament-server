@@ -59,13 +59,11 @@ export const getPlayerStats = (
         case MatchResult.whiteWon: {
           const white = playerStats[match.white];
           if (white) {
-            // playerStats[match.white] = { ...white, win: white.win + 1 };
             white.win += 1;
           }
 
           const black = playerStats[match.black];
           if (black) {
-            // playerStats[match.black] = { ...black, loss: black.loss + 1 };
             black.loss += 1;
           }
           break;
@@ -73,13 +71,11 @@ export const getPlayerStats = (
         case MatchResult.blackWon: {
           const white = playerStats[match.white];
           if (white) {
-            // playerStats[match.white] = { ...white, loss: white.loss + 1 };
             white.loss += 1;
           }
 
           const black = playerStats[match.black];
           if (black) {
-            // playerStats[match.black] = { ...black, win: black.win + 1 };
             black.win += 1;
           }
           break;
@@ -87,13 +83,11 @@ export const getPlayerStats = (
         case MatchResult.draw: {
           const white = playerStats[match.white];
           if (white) {
-            // playerStats[match.white] = { ...white, draw: white.draw + 1 };
             white.draw += 1;
           }
 
           const black = playerStats[match.black];
           if (black) {
-            // playerStats[match.black] = { ...black, draw: black.draw + 1 };
             black.draw += 1;
           }
           break;
@@ -101,13 +95,11 @@ export const getPlayerStats = (
         case MatchResult.didNotStart: {
           const white = playerStats[match.white];
           if (white && match.white !== 'bye') {
-            // playerStats[match.white] = { ...white, bye: white.bye + 1 };
             white.bye += 1;
           }
 
           const black = playerStats[match.black];
           if (black && match.black !== 'bye') {
-            // playerStats[match.black] = { ...black, bye: black.bye + 1 };
             black.bye += 1;
           }
         }

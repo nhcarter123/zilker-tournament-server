@@ -31,13 +31,16 @@ const Schema = new mongoose.Schema(
       required: true,
       default: 1000
     },
-    token: {
-      type: String
-    },
     role: {
       type: String,
       required: true,
       default: Role.player
+    },
+    token: {
+      type: String
+    },
+    organizationId: {
+      type: String
     }
   },
   {

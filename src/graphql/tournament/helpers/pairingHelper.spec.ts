@@ -27,7 +27,8 @@ it('Should pair players using the swiss algorithm', () => {
     rounds: [],
     tiebreakSeed: 0,
     standings: [],
-    isDeleted: false
+    isDeleted: false,
+    organizationId: '123'
   };
 
   let stats = getPlayerStats(rounds, players);
@@ -89,7 +90,8 @@ it('Should pair players using rating based algorithm', () => {
     rounds: [],
     tiebreakSeed: 0,
     standings: [],
-    isDeleted: false
+    isDeleted: false,
+    organizationId: '123'
   };
 
   let stats = getPlayerStats(rounds, players);

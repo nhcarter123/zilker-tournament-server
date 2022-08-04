@@ -114,10 +114,12 @@ const resolvers = {
   // Mutations
   createTournament: async (
     _: void,
-    { name }: CreateTournamentArgs
+    { name }: CreateTournamentArgs,
+    context: VerifiedContext
   ): Promise<boolean> => {
     const tournament = new TournamentModel({
-      name
+      name,
+      organizationId: context.user.organizationId
     });
 
     await tournament.save();

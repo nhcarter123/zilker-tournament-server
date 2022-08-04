@@ -3,6 +3,7 @@ import userResolvers from './user/UserResolvers';
 import verificationCodeResolvers from './verificationCode/VerificationCodeResolvers';
 import tournamentResolvers from './tournament/TournamentResolvers';
 import matchResolvers from './match/MatchResolvers';
+import organizationResolvers from './organization/OrganizationResolvers';
 import pubsub from '../pubsub/pubsub';
 import { Subscription } from '../pubsub/types';
 import { withFilter } from 'graphql-subscriptions';
@@ -43,7 +44,11 @@ const globalResolvers: ResolversType = {
 
     // Match
     getMatch: withAuth(matchResolvers.getMatch),
-    getMyMatch: withAuth(matchResolvers.getMyMatch)
+    getMyMatch: withAuth(matchResolvers.getMyMatch),
+
+    // Organization
+    getOrganization: withAuth(organizationResolvers.getOrganization),
+    getOrganizations: withAuth(organizationResolvers.getOrganizations)
   },
   Mutation: {
     // User
@@ -63,7 +68,11 @@ const globalResolvers: ResolversType = {
     kickPlayer: withAuth(tournamentResolvers.kickPlayer),
 
     // Match
-    updateMatch: withAuth(matchResolvers.updateMatch)
+    updateMatch: withAuth(matchResolvers.updateMatch),
+
+    // Organization
+    createOrganization: withAuth(organizationResolvers.createOrganization),
+    updateOrganization: withAuth(organizationResolvers.updateOrganization)
   },
   Subscription: {
     matchUpdated: {

@@ -1,9 +1,10 @@
 import { gql } from 'apollo-server';
 import { DocumentNode } from 'graphql';
-import userTypes, { User } from './user/UserTypes';
+import UserTypes, { User } from './user/UserTypes';
 import MatchType from './match/MatchTypes';
 import VerificationCodeTypes from './verificationCode/VerificationCodeTypes';
 import TournamentTypes from './tournament/TournamentTypes';
+import OrganizationType from './organization/OrganizationTypes';
 
 export type Context = {
   user: Nullable<User>;
@@ -34,10 +35,13 @@ const queryTypes: DocumentNode = gql`
     getMatch(matchId: ID!): MatchWithUserInfo
     getMyMatch(tournamentId: ID!): MatchWithUserInfo
     getRound(tournamentId: ID!, roundId: ID!): RoundWithUserInfo
+
+    getOrganization(organizationId: ID!): Organization
+    getOrganizations: [Organization!]!
   }
 
   type Mutation {
-    #   Tournament
+    # Tournament
     completeRound(
       tournamentId: ID!
       newRound: Boolean!
@@ -53,16 +57,23 @@ const queryTypes: DocumentNode = gql`
       payload: UpdateTournamentPayload!
     ): Boolean!
 
-    #   User
+    # User
     verifyCode(code: String!): User
     sendVerificationCode(phone: String!): Boolean
     updateUserDetails(payload: UpdateUserDetailsPayload!): Boolean!
     uploadPhoto(photo: Upload!): Boolean!
     deletePhoto: Boolean!
 
-    #   Matches
+    # Match
     updateMatch(matchId: ID!, payload: UpdateMatchPayload!): Boolean!
     deleteMatch(tournamentId: ID!, roundId: ID!, matchId: ID!): Boolean!
+
+    # Organization
+    createOrganization: Organization!
+    updateOrganization(
+      organizationId: ID!
+      payload: UpdateOrganizationPayload!
+    ): Boolean!
   }
 
   type Subscription {
@@ -81,7 +92,8 @@ const globalQuery: Array<DocumentNode> = [
   MatchType,
   TournamentTypes,
   VerificationCodeTypes,
-  userTypes,
+  UserTypes,
+  OrganizationType,
   queryTypes
 ];
 

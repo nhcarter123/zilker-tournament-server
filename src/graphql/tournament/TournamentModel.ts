@@ -103,6 +103,10 @@ const Schema = new mongoose.Schema(
         default: 0
       }
     },
+    organizationId: {
+      type: String,
+      required: true
+    },
     isDeleted: {
       type: Boolean,
       default: false,

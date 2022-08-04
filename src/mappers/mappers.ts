@@ -4,6 +4,8 @@ import { MatchMongo } from 'graphql/match/MatchModel';
 import { Match } from 'graphql/match/MatchTypes';
 import { UserMongo } from '../graphql/user/UserModel';
 import { User } from '../graphql/user/UserTypes';
+import { OrganizationMongo } from '../graphql/organization/OrganizationModel';
+import { Organization } from '../graphql/organization/OrganizationTypes';
 
 // tournaments
 export const mapToTournament = (
@@ -63,4 +65,24 @@ export const mapToMatches = (matches: MatchMongo[]): Match[] => {
 
 export const mapToMatchIds = (matches: MatchMongo[]): string[] => {
   return matches.map(match => match._id.toString());
+};
+
+// organizations
+export const mapToOrganization = (
+  organization: Nullable<OrganizationMongo>
+): Nullable<Organization> => {
+  if (!organization) {
+    return null;
+  }
+
+  return { ...organization.toObject(), _id: organization._id.toString() };
+};
+
+export const mapToOrganizations = (
+  organizations: OrganizationMongo[]
+): Organization[] => {
+  return organizations.map(organization => ({
+    ...organization.toObject(),
+    _id: organization._id.toString()
+  }));
 };
