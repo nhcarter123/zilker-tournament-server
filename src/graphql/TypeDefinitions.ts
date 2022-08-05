@@ -29,7 +29,7 @@ const queryTypes: DocumentNode = gql`
     getUsers(userIds: [ID!]!, filterTerm: String): [User!]!
 
     getMyTournament: Tournament
-    getTournaments: [Tournament!]!
+    getTournaments: [TournamentWithOrganization!]!
     getTournament(tournamentId: ID!): Tournament
 
     getMatch(matchId: ID!): MatchWithUserInfo

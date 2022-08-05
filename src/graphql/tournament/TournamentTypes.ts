@@ -1,6 +1,7 @@
 import { gql } from 'apollo-server';
 import { DocumentNode } from 'graphql';
 import { Match, MatchWithUserInfo } from '../match/MatchTypes';
+import { Organization } from '../organization/OrganizationTypes';
 
 export enum TournamentStatus {
   created = 'created',
@@ -62,6 +63,10 @@ export type Tournament = {
   isDeleted: boolean;
   organizationId: string;
 };
+
+export interface TournamentWithOrganization extends Tournament {
+  organization?: Organization;
+}
 
 const TournamentType: DocumentNode = gql`
   scalar Date
@@ -129,6 +134,37 @@ const TournamentType: DocumentNode = gql`
     pairingAlgorithm: PairingAlgorithm!
     location: String
     organizationId: String!
+  }
+
+  input ConfigPayload {
+    totalRounds: Int
+    maxPunchDown: Int
+    performanceWeight: Int
+  }
+
+  input UpdateTournamentPayload {
+    name: String
+    date: Date
+    status: TournamentStatus
+    pairingAlgorithm: PairingAlgorithm
+    isDeleted: Boolean
+    config: ConfigPayload
+  }
+
+  type TournamentWithOrganization {
+    _id: String!
+    name: String!
+    date: Date!
+    status: TournamentStatus!
+    players: [String!]!
+    rounds: [RoundPreview!]!
+    config: Config!
+    standings: [Standing!]!
+    isDeleted: Boolean!
+    pairingAlgorithm: PairingAlgorithm!
+    location: String
+    organizationId: String!
+    organization: Organization
   }
 `;
 

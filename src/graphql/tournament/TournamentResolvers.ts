@@ -6,7 +6,8 @@ import {
   RoundPreview,
   RoundWithUserInfo,
   Tournament,
-  TournamentStatus
+  TournamentStatus,
+  TournamentWithOrganization
 } from './TournamentTypes';
 import {
   createNewRound,
@@ -23,11 +24,13 @@ import { VerifiedContext } from '../TypeDefinitions';
 import {
   mapToMatches,
   mapToMatchIds,
+  mapToOrganizations,
   mapToTournament,
   mapToTournaments,
   mapToUsers
 } from '../../mappers/mappers';
 import { addHistoryToMatch } from '../match/MatchResolvers';
+import OrganizationModel from '../organization/OrganizationModel';
 
 type CreateTournamentArgs = {
   name: string;
@@ -105,10 +108,23 @@ const resolvers = {
     return TournamentModel.findOne({ _id: tournamentId });
   },
 
-  getTournaments: async (): Promise<Tournament[]> => {
-    return TournamentModel.find({ isDeleted: false })
+  getTournaments: async (): Promise<TournamentWithOrganization[]> => {
+    const tournaments = await TournamentModel.find({ isDeleted: false })
       .sort({ date: -1 })
       .then(mapToTournaments);
+
+    const organizations = await OrganizationModel.find({
+      _id: {
+        $in: uniq(tournaments.map(tournament => tournament.organizationId))
+      }
+    }).then(mapToOrganizations);
+
+    return tournaments.map(tournament => ({
+      ...tournament,
+      organization: organizations.find(
+        org => org._id === tournament.organizationId
+      )
+    }));
   },
 
   // Mutations

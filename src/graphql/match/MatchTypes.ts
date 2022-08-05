@@ -60,21 +60,6 @@ const matchType: DocumentNode = gql`
   input UpdateMatchPayload {
     result: MatchResult!
   }
-
-  input ConfigPayload {
-    totalRounds: Int
-    maxPunchDown: Int
-    performanceWeight: Int
-  }
-
-  input UpdateTournamentPayload {
-    name: String
-    date: Date
-    status: TournamentStatus
-    pairingAlgorithm: PairingAlgorithm
-    isDeleted: Boolean
-    config: ConfigPayload
-  }
 `;
 
 export default matchType;
