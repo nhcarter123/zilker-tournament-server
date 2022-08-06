@@ -23,6 +23,7 @@ export type Standing = {
   loss: number;
   draw: number;
   bye: number;
+  initialRating: number;
 };
 
 export type Round = {
@@ -103,6 +104,7 @@ const TournamentType: DocumentNode = gql`
     totalRounds: Int!
     performanceWeight: Int!
     maxPunchDown: Int!
+    skillGroupCount: Int!
   }
 
   type Standing {
@@ -114,6 +116,7 @@ const TournamentType: DocumentNode = gql`
     loss: Int!
     draw: Int!
     bye: Int!
+    initialRating: Int!
   }
 
   type RoundPreview {
@@ -142,6 +145,7 @@ const TournamentType: DocumentNode = gql`
     totalRounds: Int
     maxPunchDown: Int
     performanceWeight: Int
+    skillGroupCount: Int
   }
 
   input UpdateTournamentPayload {

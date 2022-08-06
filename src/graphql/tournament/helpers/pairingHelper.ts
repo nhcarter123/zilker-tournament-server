@@ -18,6 +18,7 @@ interface PlayerStat {
   score: number;
   pairingScore: number;
   rating: number;
+  initialRating: number;
   previousRating: number;
   matchesPlayed: number;
   whitePlayed: number;
@@ -46,6 +47,7 @@ export const getPlayerStats = (
       pairingScore: 0,
       previousRating: player.rating,
       rating: player.rating,
+      initialRating: player.rating,
       matchesPlayed: player.matchesPlayed,
       whitePlayed: 0,
       opponents: {}
@@ -53,88 +55,97 @@ export const getPlayerStats = (
   });
 
   // look through all the previous rounds and sum the player's stats
-  for (const round of rounds) {
-    for (const match of round.matches) {
-      switch (match.result) {
-        case MatchResult.whiteWon: {
+  for (let i = 0; i < rounds.length; i++) {
+    const round = rounds[i];
+    if (round) {
+      for (const match of round.matches) {
+        switch (match.result) {
+          case MatchResult.whiteWon: {
+            const white = playerStats[match.white];
+            if (white) {
+              white.win += 1;
+            }
+
+            const black = playerStats[match.black];
+            if (black) {
+              black.loss += 1;
+            }
+            break;
+          }
+          case MatchResult.blackWon: {
+            const white = playerStats[match.white];
+            if (white) {
+              white.loss += 1;
+            }
+
+            const black = playerStats[match.black];
+            if (black) {
+              black.win += 1;
+            }
+            break;
+          }
+          case MatchResult.draw: {
+            const white = playerStats[match.white];
+            if (white) {
+              white.draw += 1;
+            }
+
+            const black = playerStats[match.black];
+            if (black) {
+              black.draw += 1;
+            }
+            break;
+          }
+          case MatchResult.didNotStart: {
+            const white = playerStats[match.white];
+            if (white && match.white !== 'bye') {
+              white.bye += 1;
+            }
+
+            const black = playerStats[match.black];
+            if (black && match.black !== 'bye') {
+              black.bye += 1;
+            }
+          }
+        }
+
+        if (match.white !== 'bye' && match.black !== 'bye') {
           const white = playerStats[match.white];
+          const black = playerStats[match.black];
+
           if (white) {
-            white.win += 1;
+            white.previousRating = match.whiteRating;
+            white.rating = match.newWhiteRating || match.whiteRating;
+            white.matchesPlayed = match.whiteMatchesPlayed;
+            white.whitePlayed += 1;
+            if (i === 0) {
+              white.initialRating = match.whiteRating;
+            }
           }
 
-          const black = playerStats[match.black];
           if (black) {
-            black.loss += 1;
+            black.previousRating = match.blackRating;
+            black.rating = match.newBlackRating || match.blackRating;
+            black.matchesPlayed = match.blackMatchesPlayed;
+            if (i === 0) {
+              black.initialRating = match.blackRating;
+            }
           }
-          break;
-        }
-        case MatchResult.blackWon: {
-          const white = playerStats[match.white];
+
           if (white) {
-            white.loss += 1;
+            if (playerStats[match.white]?.opponents[match.black]) {
+              white.opponents[match.black] += 1;
+            } else {
+              white.opponents[match.black] = 1;
+            }
           }
 
-          const black = playerStats[match.black];
           if (black) {
-            black.win += 1;
-          }
-          break;
-        }
-        case MatchResult.draw: {
-          const white = playerStats[match.white];
-          if (white) {
-            white.draw += 1;
-          }
-
-          const black = playerStats[match.black];
-          if (black) {
-            black.draw += 1;
-          }
-          break;
-        }
-        case MatchResult.didNotStart: {
-          const white = playerStats[match.white];
-          if (white && match.white !== 'bye') {
-            white.bye += 1;
-          }
-
-          const black = playerStats[match.black];
-          if (black && match.black !== 'bye') {
-            black.bye += 1;
-          }
-        }
-      }
-
-      if (match.white !== 'bye' && match.black !== 'bye') {
-        const white = playerStats[match.white];
-        const black = playerStats[match.black];
-
-        if (white) {
-          white.previousRating = match.whiteRating;
-          white.rating = match.newWhiteRating || match.whiteRating;
-          white.matchesPlayed = match.whiteMatchesPlayed;
-          white.whitePlayed += 1;
-        }
-
-        if (black) {
-          black.previousRating = match.blackRating;
-          black.rating = match.newBlackRating || match.blackRating;
-          black.matchesPlayed = match.blackMatchesPlayed;
-        }
-
-        if (white) {
-          if (playerStats[match.white]?.opponents[match.black]) {
-            white.opponents[match.black] += 1;
-          } else {
-            white.opponents[match.black] = 1;
-          }
-        }
-
-        if (black) {
-          if (playerStats[match.black]?.opponents[match.white]) {
-            black.opponents[match.white] += 1;
-          } else {
-            black.opponents[match.white] = 1;
+            if (playerStats[match.black]?.opponents[match.white]) {
+              black.opponents[match.white] += 1;
+            } else {
+              black.opponents[match.white] = 1;
+            }
           }
         }
       }
@@ -305,7 +316,8 @@ export const createStandings = (stats: PlayerStats): Standing[] => {
       win: stat.win,
       loss: stat.loss,
       draw: stat.draw,
-      bye: stat.bye
+      bye: stat.bye,
+      initialRating: stat.initialRating
     }))
     .sort((a, b) => b.score - a.score || b.rating - a.rating)
     .map((standing, index) => ({ ...standing, position: index + 1 }));

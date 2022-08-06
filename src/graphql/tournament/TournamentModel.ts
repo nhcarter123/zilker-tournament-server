@@ -78,6 +78,11 @@ const Schema = new mongoose.Schema(
         bye: {
           type: Number,
           required: true
+        },
+        initialRating: {
+          type: Number,
+          default: 0,
+          required: true
         }
       }
     ],
@@ -101,6 +106,11 @@ const Schema = new mongoose.Schema(
         type: Number,
         required: true,
         default: 0
+      },
+      skillGroupCount: {
+        type: Number,
+        default: 3,
+        required: true
       }
     },
     organizationId: {
