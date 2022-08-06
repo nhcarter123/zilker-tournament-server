@@ -31,6 +31,9 @@ import {
 } from '../../mappers/mappers';
 import { addHistoryToMatch } from '../match/MatchResolvers';
 import OrganizationModel from '../organization/OrganizationModel';
+import AmazonS3URI from 'amazon-s3-uri';
+import { FileUpload } from 'graphql-upload';
+import { deletePhoto, uploadPhoto } from '../../s3/s3';
 
 type CreateTournamentArgs = {
   name: string;
@@ -85,6 +88,15 @@ type completeRoundArgs = {
   tournamentId: string;
   newRound: boolean;
   textAlert: boolean;
+};
+
+type UploadTournamentPhotoArgs = {
+  tournamentId: string;
+  photo: FileUpload;
+};
+
+type DeleteTournamentPhotoArgs = {
+  tournamentId: string;
 };
 
 const resolvers = {
@@ -505,6 +517,53 @@ const resolvers = {
         tournamentUpdated: { tournament: updatedTournament, newRound }
       });
     }
+
+    return true;
+  },
+
+  uploadTournamentPhoto: async (
+    _: void,
+    { tournamentId, photo }: UploadTournamentPhotoArgs
+  ): Promise<boolean> => {
+    const url = await uploadPhoto(photo);
+
+    const tournament = await TournamentModel.findOneAndUpdate(
+      { _id: tournamentId },
+      { photo: url }
+    ).then(mapToTournament);
+
+    if (!tournament) {
+      throw new Error('Tournament not found!');
+    }
+
+    if (tournament.photo) {
+      // delete old photo
+      const uri = tournament.photo || '';
+      const { key } = AmazonS3URI(uri);
+
+      await deletePhoto(key || '');
+    }
+
+    return true;
+  },
+
+  deleteTournamentPhoto: async (
+    _: void,
+    { tournamentId }: DeleteTournamentPhotoArgs
+  ): Promise<boolean> => {
+    const tournament = await TournamentModel.findOneAndUpdate(
+      { _id: tournamentId },
+      { $unset: { photo: 1 } }
+    ).then(mapToTournament);
+
+    if (!tournament) {
+      throw new Error('Tournament not found!');
+    }
+
+    const uri = tournament.photo || '';
+    const { key } = AmazonS3URI(uri);
+
+    await deletePhoto(key || '');
 
     return true;
   }

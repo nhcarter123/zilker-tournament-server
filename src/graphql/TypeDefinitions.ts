@@ -56,6 +56,8 @@ const queryTypes: DocumentNode = gql`
       tournamentId: ID!
       payload: UpdateTournamentPayload!
     ): Boolean!
+    uploadTournamentPhoto(tournamentId: ID!, photo: Upload!): Boolean!
+    deleteTournamentPhoto(tournamentId: ID!): Boolean!
 
     # User
     verifyCode(code: String!): User

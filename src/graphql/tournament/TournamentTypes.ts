@@ -62,6 +62,7 @@ export type Tournament = {
   pairingAlgorithm: string;
   isDeleted: boolean;
   organizationId: string;
+  photo?: string;
 };
 
 export interface TournamentWithOrganization extends Tournament {
@@ -134,6 +135,7 @@ const TournamentType: DocumentNode = gql`
     pairingAlgorithm: PairingAlgorithm!
     location: String
     organizationId: String!
+    photo: String
   }
 
   input ConfigPayload {
@@ -165,6 +167,7 @@ const TournamentType: DocumentNode = gql`
     location: String
     organizationId: String!
     organization: Organization
+    photo: String
   }
 `;
 

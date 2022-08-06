@@ -1,17 +1,10 @@
-import S3, { ManagedUpload } from 'aws-sdk/clients/s3';
-import { nanoid } from 'nanoid';
-import mime from 'mime'
 import { FileUpload } from 'graphql-upload';
-import UserModel  from './UserModel';
+import UserModel from './UserModel';
 import type { Context, VerifiedContext } from '../TypeDefinitions';
 import { User } from './UserTypes';
 import { mapToUser, mapToUsers } from '../../mappers/mappers';
-
-// todo change to parameter store
-const s3 = new S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_KEY
-});
+import AmazonS3URI from 'amazon-s3-uri';
+import { deletePhoto, uploadPhoto } from '../../s3/s3';
 
 type UpdateUserDetailsPayload = {
   firstName?: string,
@@ -64,65 +57,27 @@ const resolvers = {
   },
 
   uploadPhoto: async (_: void, { photo }: UploadPhotoArgs, context: VerifiedContext): Promise<boolean> => {
-    const { createReadStream, mimetype } = await photo;
-
-    const params = {
-      Bucket: process.env.S3_PHOTO_BUCKET || '',
-      Key: `${nanoid()}.${mime.extension(mimetype)}`,
-      Body: createReadStream(),
-      ContentType: 'image/jpeg'
-    };
-
-    const url: string = await new Promise((resolve, reject) => {
-      s3.upload(params, (err: Error, data: ManagedUpload.SendData) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(data.Location);
-        }
-      });
-    });
+    const url = await uploadPhoto(photo);
 
     await UserModel.findOneAndUpdate({ _id: context.user._id }, { photo: url });
 
-    // delete old photo
     if (context.user.photo) {
-      const deleteParams = {
-        Bucket: process.env.S3_PHOTO_BUCKET || '',
-        Key: context.user.photo,
-      };
+      // delete old photo
+      const uri = context.user.photo || '';
+      const { key } = AmazonS3URI(uri);
 
-      await new Promise((resolve, reject) => {
-        s3.deleteObject(deleteParams, (err: Error, data) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(data);
-          }
-        });
-      });
+      await deletePhoto(key || '');
     }
 
     return true;
   },
 
   deletePhoto: async (_: void, _args: void, context: VerifiedContext): Promise<boolean> => {
-    // todo this function does not seem to work, photos still present in s3
-    // possibly this is working but re-upload also needs to delet
-    const params = {
-      Bucket: process.env.S3_PHOTO_BUCKET || '',
-      Key: context.user.photo || '',
-    };
+    const uri = context.user.photo || '';
+    const { key } = AmazonS3URI(uri);
 
-    await new Promise((resolve, reject) => {
-      s3.deleteObject(params, (err: Error, data) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(data);
-        }
-      });
-    });
+    await deletePhoto(key || '');
+
     await UserModel.findOneAndUpdate({ _id: context.user._id }, { $unset: { photo: 1 } });
 
     return true;

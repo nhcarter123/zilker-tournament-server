@@ -107,6 +107,9 @@ const Schema = new mongoose.Schema(
       type: String,
       required: true
     },
+    photo: {
+      type: String
+    },
     isDeleted: {
       type: Boolean,
       default: false,
