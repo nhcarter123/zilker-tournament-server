@@ -157,8 +157,8 @@ export const getPlayerStats = (
     if (player) {
       playerStats[playerId] = {
         ...player,
-        score: player.win + player.draw + player.bye,
-        pairingScore: player.win + player.draw
+        score: player.win + player.draw * 0.5 + player.bye * 0.5,
+        pairingScore: player.win + player.draw * 0.5
       };
     }
   }
