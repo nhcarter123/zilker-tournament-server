@@ -12,7 +12,8 @@ export const getRatingMatches = (
   stats: PlayerStats,
   boardTiebreakSeed: number,
   byePlayer: Maybe<string>,
-  performanceWeight: number
+  performanceWeight: number,
+  roundNumber: number
 ): Match[] => {
   let players: PlayerStub[] = Object.entries(stats)
     .map(([id, value]) => ({
@@ -32,7 +33,8 @@ export const getRatingMatches = (
 
     if (player) {
       const ratingBuffer =
-        ((player.rating / 6) * players.length) / startingLength;
+        ((player.rating / 8) * (players.length / startingLength)) /
+        (roundNumber + 1);
 
       const opponent = [...players].sort((a, b) => {
         const statsA = stats[a.id];

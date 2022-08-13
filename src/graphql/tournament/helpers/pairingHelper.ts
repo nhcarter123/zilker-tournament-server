@@ -10,6 +10,10 @@ import { User } from '../../user/UserTypes';
 import { getSwissMatches } from './swissPairing';
 import { getRatingMatches } from './ratingPairing';
 
+export interface IOpponentsMap {
+  [id: string]: number;
+}
+
 interface PlayerStat {
   win: number;
   loss: number;
@@ -22,9 +26,7 @@ interface PlayerStat {
   previousRating: number;
   matchesPlayed: number;
   whitePlayed: number;
-  opponents: {
-    [id: string]: number;
-  };
+  opponents: IOpponentsMap;
 }
 
 export interface PlayerStats {
@@ -300,7 +302,8 @@ const getMatches = (
         stats,
         boardTiebreakSeed,
         byePlayer,
-        tournament.config.performanceWeight
+        tournament.config.performanceWeight,
+        tournament.rounds.length
       );
   }
 };
