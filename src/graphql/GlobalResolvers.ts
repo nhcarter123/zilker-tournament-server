@@ -33,14 +33,13 @@ const globalResolvers: ResolversType = {
   Query: {
     // User
     me: userResolvers.me,
-    getUser: withAuth(userResolvers.getUser),
-    getUsers: withAuth(userResolvers.getUsers),
+    getUsers: userResolvers.getUsers,
 
     // Tournament
     getMyTournament: withAuth(tournamentResolvers.getMyTournament),
-    getTournaments: withAuth(tournamentResolvers.getTournaments),
-    getTournament: withAuth(tournamentResolvers.getTournament),
-    getRound: withAuth(tournamentResolvers.getRound),
+    getTournaments: tournamentResolvers.getTournaments,
+    getTournament: tournamentResolvers.getTournament,
+    getRound: tournamentResolvers.getRound,
 
     // Match
     getMatch: withAuth(matchResolvers.getMatch),
