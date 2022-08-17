@@ -199,20 +199,17 @@ const resolvers = {
     { organizationId }: AutoJoinTournamentArgs,
     context: VerifiedContext
   ): Promise<{ tournamentId: string }> => {
-    console.log(organizationId);
-    console.log(context.user._id);
-
-    const isInAnotherActiveTournament = await TournamentModel.findOne(
-      { status: TournamentStatus.active },
-      { $in: { players: context.user._id } }
-    );
+    const isInAnotherActiveTournament = await TournamentModel.findOne({
+      status: TournamentStatus.active,
+      players: { $in: [context.user._id] }
+    });
 
     if (isInAnotherActiveTournament) {
       throw new Error('Is in another active tournament!');
     }
 
     const tournament = await TournamentModel.findOneAndUpdate(
-      { status: TournamentStatus.active }, // todo change this
+      { status: TournamentStatus.active, organizationId },
       { $addToSet: { players: context.user._id } },
       { new: true }
     ).then(mapToTournament);
