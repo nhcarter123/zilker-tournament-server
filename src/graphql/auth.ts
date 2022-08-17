@@ -11,7 +11,9 @@ export const getUser = async (token: string): Promise<Nullable<User>> => {
       `${process.env.SECRET}`
     ) as JwtPayload;
 
-    return UserModel.findOne({ phone: decodedToken.id }).then(mapToUser);
+    return UserModel.findOne({
+      $or: [{ phone: decodedToken.id }, { email: decodedToken.id }]
+    }).then(mapToUser);
   } catch (e) {
     return null;
   }

@@ -5,7 +5,9 @@ export interface User {
   _id: string;
   firstName?: string;
   lastName?: string;
-  phone: string;
+  phone?: string;
+  email?: string;
+  password?: string;
   photo?: string;
   rating: number;
   matchesPlayed: number;
@@ -24,7 +26,8 @@ const UserTypes: DocumentNode = gql`
     _id: String
     firstName: String
     lastName: String
-    phone: String!
+    phone: String
+    email: String
     photo: String
     rating: Int
     matchesPlayed: Int!

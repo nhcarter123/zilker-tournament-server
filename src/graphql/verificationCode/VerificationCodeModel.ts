@@ -4,7 +4,11 @@ import { VerificationCode } from './VerificationCodeTypes';
 const Schema = new mongoose.Schema(
   {
     createdAt: { type: Date, default: Date.now },
-    phone: {
+    source: {
+      type: String,
+      required: true
+    },
+    type: {
       type: String,
       required: true
     },

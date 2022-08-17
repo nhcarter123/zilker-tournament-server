@@ -493,11 +493,13 @@ const resolvers = {
     if (textAlert && newRound) {
       players
         .filter(player => tournament.players.includes(player._id))
-        .map(player =>
-          sendText(
-            `⚠️🚨 Round ${updatedRounds.length} is starting 🚨⚠️`,
-            player.phone
-          ).catch(e => console.log(e))
+        .map(
+          player =>
+            player.phone &&
+            sendText(
+              `⚠️🚨 Round ${updatedRounds.length} is starting 🚨⚠️`,
+              player.phone
+            ).catch(e => console.log(e))
         );
     }
 

@@ -55,7 +55,8 @@ const globalResolvers: ResolversType = {
     uploadPhoto: withAuth(userResolvers.uploadPhoto),
     deletePhoto: withAuth(userResolvers.deletePhoto),
     verifyCode: verificationCodeResolvers.verifyCode,
-    sendVerificationCode: verificationCodeResolvers.sendVerificationCode,
+    loginPhone: verificationCodeResolvers.loginPhone,
+    loginEmail: verificationCodeResolvers.loginEmail,
 
     // Tournament
     createTournament: withAuth(tournamentResolvers.createTournament),

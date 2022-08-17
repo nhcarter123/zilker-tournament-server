@@ -14,9 +14,13 @@ const Schema = new mongoose.Schema(
       type: String
     },
     phone: {
-      type: String,
-      required: true,
-      index: true // todo check this
+      type: String
+    },
+    email: {
+      type: String
+    },
+    password: {
+      type: String
     },
     photo: {
       type: String
