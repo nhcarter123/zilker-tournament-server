@@ -21,7 +21,7 @@ const resolvers = {
     const verificationCode = await VerificationCodeModel.findOne({ code });
 
     if (!verificationCode) {
-      throw new Error('Invalid!');
+      throw new Error('Invalid code');
     }
 
     let user = await UserModel.findOne({
@@ -49,6 +49,12 @@ const resolvers = {
     { phone }: GetVerificationCodeArgs
   ): Promise<boolean> => {
     const code = nanoid();
+
+    const existingCodesByUser = await VerificationCodeModel.count({ phone });
+
+    if (existingCodesByUser > 3) {
+      throw new Error('Rate limit exceeded');
+    }
 
     const verificationCode = new VerificationCodeModel({
       phone,
