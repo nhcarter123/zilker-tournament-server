@@ -2,7 +2,6 @@ import { gql } from 'apollo-server';
 import { DocumentNode } from 'graphql';
 import UserTypes, { User } from './user/UserTypes';
 import MatchType from './match/MatchTypes';
-import VerificationCodeTypes from './verificationCode/VerificationCodeTypes';
 import TournamentTypes from './tournament/TournamentTypes';
 import OrganizationType from './organization/OrganizationTypes';
 
@@ -93,7 +92,6 @@ const queryTypes: DocumentNode = gql`
 const globalQuery: Array<DocumentNode> = [
   MatchType,
   TournamentTypes,
-  VerificationCodeTypes,
   UserTypes,
   OrganizationType,
   queryTypes
