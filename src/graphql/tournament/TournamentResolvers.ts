@@ -148,6 +148,16 @@ const resolvers = {
     { name }: CreateTournamentArgs,
     context: VerifiedContext
   ): Promise<boolean> => {
+    const tournamentsCreatedRecently = await TournamentModel.count({
+      createdAt: {
+        $gte: new Date(new Date().getTime() - 20 * 60 * 1000)
+      }
+    });
+
+    if (tournamentsCreatedRecently > 2) {
+      throw new Error('Rate limit exceeded');
+    }
+
     const tournament = new TournamentModel({
       name,
       organizationId: context.user.organizationId
