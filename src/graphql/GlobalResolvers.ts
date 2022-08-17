@@ -42,7 +42,7 @@ const globalResolvers: ResolversType = {
     getRound: tournamentResolvers.getRound,
 
     // Match
-    getMatch: withAuth(matchResolvers.getMatch),
+    getMatch: matchResolvers.getMatch,
     getMyMatch: withAuth(matchResolvers.getMyMatch),
 
     // Organization
