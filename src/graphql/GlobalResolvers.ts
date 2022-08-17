@@ -63,7 +63,6 @@ const globalResolvers: ResolversType = {
     completeRound: withAuth(tournamentResolvers.completeRound),
     deleteRound: withAuth(tournamentResolvers.deleteRound),
     joinTournament: withAuth(tournamentResolvers.joinTournament),
-    autoJoinTournament: withAuth(tournamentResolvers.autoJoinTournament),
     kickPlayer: withAuth(tournamentResolvers.kickPlayer),
     uploadTournamentPhoto: withAuth(tournamentResolvers.uploadTournamentPhoto),
     deleteTournamentPhoto: withAuth(tournamentResolvers.deleteTournamentPhoto),

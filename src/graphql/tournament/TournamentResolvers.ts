@@ -58,12 +58,15 @@ type UpdateTournamentPayload = {
 };
 
 type JoinTournamentArgs = {
-  tournamentId: string;
+  organizationId: string;
+  tournamentId?: string;
 };
 
-type AutoJoinTournamentArgs = {
+interface IJoinTournamentFilter {
+  _id?: string;
+  status: TournamentStatus;
   organizationId: string;
-};
+}
 
 type KickPlayerArgs = {
   tournamentId: string;
@@ -176,27 +179,7 @@ const resolvers = {
 
   joinTournament: async (
     _: void,
-    { tournamentId }: JoinTournamentArgs,
-    context: VerifiedContext
-  ): Promise<{ tournamentId: string }> => {
-    const tournament = await TournamentModel.findOneAndUpdate(
-      { _id: tournamentId },
-      { $addToSet: { players: context.user._id } },
-      { new: true }
-    ).then(mapToTournament);
-
-    if (tournament) {
-      pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
-        tournamentUpdated: { tournament, newRound: false }
-      });
-    }
-
-    return { tournamentId };
-  },
-
-  autoJoinTournament: async (
-    _: void,
-    { organizationId }: AutoJoinTournamentArgs,
+    { organizationId, tournamentId }: JoinTournamentArgs,
     context: VerifiedContext
   ): Promise<{ tournamentId: string }> => {
     const isInAnotherActiveTournament = await TournamentModel.findOne({
@@ -208,8 +191,17 @@ const resolvers = {
       throw new Error('Is in another active tournament!');
     }
 
+    const filter: IJoinTournamentFilter = {
+      status: TournamentStatus.active,
+      organizationId
+    };
+
+    if (tournamentId) {
+      filter._id = tournamentId;
+    }
+
     const tournament = await TournamentModel.findOneAndUpdate(
-      { status: TournamentStatus.active, organizationId },
+      filter,
       { $addToSet: { players: context.user._id } },
       { new: true }
     ).then(mapToTournament);
