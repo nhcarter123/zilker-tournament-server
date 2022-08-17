@@ -125,6 +125,7 @@ const resolvers = {
     { email, password }: ILoginEmailArgs
   ): Promise<Nullable<User>> => {
     const code = nanoid();
+    const lowerEmail = email.toLowerCase();
 
     const existingUser = await UserModel.findOne({
       email
@@ -140,14 +141,16 @@ const resolvers = {
       }
     }
 
-    const existingCodesByUser = await VerificationCodeModel.count({ email });
+    const existingCodesByUser = await VerificationCodeModel.count({
+      email: lowerEmail
+    });
 
     if (existingCodesByUser > 3) {
       throw new Error('Rate limit exceeded');
     }
 
     const verificationCode = new VerificationCodeModel({
-      source: email,
+      source: lowerEmail,
       type: EVerificationCodeType.Email,
       code
     });
@@ -155,11 +158,11 @@ const resolvers = {
     await verificationCode.save();
 
     // TODO: VERY BAD REMOVE WHEN EMAIL OR PHONE IS LIVE
-    const token = generateToken(email);
+    const token = generateToken(lowerEmail);
     const hashedPassword = await hash(password);
 
     const user = new UserModel({
-      email: email,
+      email: lowerEmail,
       password: hashedPassword,
       token
     });
