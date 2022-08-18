@@ -33,7 +33,7 @@ import { addHistoryToMatch } from '../match/MatchResolvers';
 import OrganizationModel from '../organization/OrganizationModel';
 import AmazonS3URI from 'amazon-s3-uri';
 import { FileUpload } from 'graphql-upload';
-import { deletePhoto, uploadPhoto } from '../../s3/s3';
+import { deletePhoto, uploadPhoto } from '../../aws/s3';
 
 type CreateTournamentArgs = {
   name: string;

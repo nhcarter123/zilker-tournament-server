@@ -4,7 +4,7 @@ import type { Context, VerifiedContext } from '../TypeDefinitions';
 import { User } from './UserTypes';
 import { mapToUser, mapToUsers } from '../../mappers/mappers';
 import AmazonS3URI from 'amazon-s3-uri';
-import { deletePhoto, uploadPhoto } from '../../s3/s3';
+import { deletePhoto, uploadPhoto } from '../../aws/s3';
 
 type UpdateUserDetailsPayload = {
   firstName?: string,

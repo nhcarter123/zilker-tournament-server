@@ -45,6 +45,8 @@ const corsOptions = {
       const token = req.headers.authorization || '';
       const user = await getUser(token);
       return {
+        ip: req.socket.remoteAddress,
+        userAgent: req.headers['user-agent'],
         user
       };
     },

@@ -7,10 +7,14 @@ import OrganizationType from './organization/OrganizationTypes';
 
 export type Context = {
   user: Nullable<User>;
+  ip: string;
+  userAgent: string;
 };
 
 export type VerifiedContext = {
   user: User;
+  ip: string;
+  userAgent: string;
 };
 
 const queryTypes: DocumentNode = gql`
@@ -59,7 +63,8 @@ const queryTypes: DocumentNode = gql`
 
     # User
     verifyCode(code: String!): User
-    loginPhone(phone: String!): Boolean!
+    verifyPhone(phone: String!): Boolean!
+    verifyEmail(email: String!, password: String!): Boolean!
     loginEmail(email: String!, password: String!): User
     updateUserDetails(payload: UpdateUserDetailsPayload!): Boolean!
     uploadPhoto(photo: Upload!): Boolean!

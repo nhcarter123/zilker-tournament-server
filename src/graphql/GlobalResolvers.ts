@@ -8,6 +8,7 @@ import pubsub from '../pubsub/pubsub';
 import { Subscription } from '../pubsub/types';
 import { withFilter } from 'graphql-subscriptions';
 import { Context } from './TypeDefinitions';
+import RequestsModel from './verificationCode/ServerRequestModel';
 
 type ResolversType = {
   Upload: Object;
@@ -23,6 +24,30 @@ const withAuth = (fn: Function) => (
 ) => {
   if (!context.user) {
     throw 'Unauthorized';
+  }
+
+  return fn(parent, args, context);
+};
+
+const withRateLimit = (fn: Function, limit = 5, interval = 5 * 1000) => async (
+  parent: void,
+  args: void,
+  context: Context
+) => {
+  const serveRequest = new RequestsModel({
+    userAgent: context.userAgent,
+    ip: context.ip
+  });
+
+  await serveRequest.save();
+
+  const recentServerRequests = await RequestsModel.count({
+    $or: [{ ip: context.ip }, { userAgent: context.userAgent }],
+    createdAt: { $gte: Date.now() - interval }
+  });
+
+  if (recentServerRequests > limit) {
+    throw new Error('Rate limit exceeded');
   }
 
   return fn(parent, args, context);
@@ -55,8 +80,9 @@ const globalResolvers: ResolversType = {
     uploadPhoto: withAuth(userResolvers.uploadPhoto),
     deletePhoto: withAuth(userResolvers.deletePhoto),
     verifyCode: verificationCodeResolvers.verifyCode,
-    loginPhone: verificationCodeResolvers.loginPhone,
-    loginEmail: verificationCodeResolvers.loginEmail,
+    verifyPhone: withRateLimit(verificationCodeResolvers.verifyPhone),
+    verifyEmail: withRateLimit(verificationCodeResolvers.verifyEmail),
+    loginEmail: withRateLimit(verificationCodeResolvers.loginEmail),
 
     // Tournament
     createTournament: withAuth(tournamentResolvers.createTournament),

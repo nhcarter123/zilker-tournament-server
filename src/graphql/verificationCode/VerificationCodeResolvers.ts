@@ -6,6 +6,7 @@ import { sendText } from './helpers/sms';
 import { User } from '../user/UserTypes';
 import { mapToUser, mapToUserNonNull } from '../../mappers/mappers';
 import crypto from 'crypto';
+import { sendEmail } from '../../aws/ses';
 
 const nanoid = customAlphabet('1234567890', 4);
 
@@ -20,11 +21,6 @@ interface ILoginPhoneArgs {
 interface ILoginEmailArgs {
   email: string;
   password: string;
-}
-
-enum EVerificationCodeType {
-  Phone = 'Phone',
-  Email = 'Email'
 }
 
 const hash = async (password: string): Promise<string> => {
@@ -65,8 +61,18 @@ const resolvers = {
 
     let user = await UserModel.findOne({
       $or: [
-        { phone: verificationCode.phone },
-        { email: verificationCode.email }
+        {
+          $and: [
+            { phone: verificationCode.phone },
+            { phone: { $exists: true } }
+          ]
+        },
+        {
+          $and: [
+            { email: verificationCode.email },
+            { email: { $exists: true } }
+          ]
+        }
       ]
     });
 
@@ -77,17 +83,15 @@ const resolvers = {
     if (user) {
       await UserModel.updateOne({ _id: user._id }, { token });
     } else {
-      if (verificationCode.phone === EVerificationCodeType.Phone) {
+      if (verificationCode.phone) {
         user = new UserModel({
           phone: verificationCode.phone,
           token
         });
       } else {
-        const hashedPassword = await hash(verificationCode.password);
-
         user = new UserModel({
           email: verificationCode.email,
-          password: hashedPassword,
+          password: verificationCode.password,
           token
         });
       }
@@ -98,9 +102,13 @@ const resolvers = {
     return mapToUserNonNull(user);
   },
 
-  loginPhone: async (_: void, { phone }: ILoginPhoneArgs): Promise<boolean> => {
+  verifyPhone: async (
+    _: void,
+    { phone }: ILoginPhoneArgs
+  ): Promise<boolean> => {
     const code = nanoid();
 
+    // two layers of rate limiting because I am scared
     const existingCodesByUser = await VerificationCodeModel.count({ phone });
 
     if (existingCodesByUser > 3) {
@@ -108,8 +116,7 @@ const resolvers = {
     }
 
     const verificationCode = new VerificationCodeModel({
-      source: phone,
-      type: EVerificationCodeType.Phone,
+      phone,
       code
     });
 
@@ -120,27 +127,23 @@ const resolvers = {
     return true;
   },
 
-  loginEmail: async (
+  verifyEmail: async (
     _: void,
     { email, password }: ILoginEmailArgs
-  ): Promise<Nullable<User>> => {
+  ): Promise<boolean> => {
     const code = nanoid();
     const lowerEmail = email.toLowerCase();
+    const hashedPassword = await hash(password);
 
     const existingUser = await UserModel.findOne({
       email
     }).then(mapToUser);
 
     if (existingUser) {
-      if (existingUser.password) {
-        const passwordMatches = await verify(password, existingUser.password);
-
-        if (passwordMatches) {
-          return existingUser;
-        }
-      }
+      throw new Error('This email is already in use');
     }
 
+    // two layers of rate limiting because I am scared
     const existingCodesByUser = await VerificationCodeModel.count({
       email: lowerEmail
     });
@@ -150,26 +153,39 @@ const resolvers = {
     }
 
     const verificationCode = new VerificationCodeModel({
-      source: lowerEmail,
-      type: EVerificationCodeType.Email,
+      email: lowerEmail,
+      password: hashedPassword,
       code
     });
 
     await verificationCode.save();
 
-    // TODO: VERY BAD REMOVE WHEN EMAIL OR PHONE IS LIVE
-    const token = generateToken(lowerEmail);
-    const hashedPassword = await hash(password);
+    await sendEmail(lowerEmail, code);
 
-    const user = new UserModel({
-      email: lowerEmail,
-      password: hashedPassword,
-      token
-    });
+    return true;
+  },
 
-    await user.save();
+  loginEmail: async (
+    _: void,
+    { email, password }: ILoginEmailArgs
+  ): Promise<Maybe<User>> => {
+    const lowerEmail = email.toLowerCase();
 
-    return mapToUser(user);
+    const existingUser = await UserModel.findOne({
+      email: lowerEmail
+    }).then(mapToUser);
+
+    if (!existingUser?.password) {
+      throw new Error('Incorrect email or password');
+    }
+
+    const passwordMatches = await verify(password, existingUser.password);
+
+    if (!passwordMatches) {
+      throw new Error('Incorrect email or password');
+    }
+
+    return existingUser;
   }
 };
 
