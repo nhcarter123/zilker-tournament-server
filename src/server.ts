@@ -1,4 +1,5 @@
 import * as dotenv from 'dotenv';
+import requestIp from 'request-ip'
 
 dotenv.config();
 
@@ -30,6 +31,8 @@ const corsOptions = {
   await connectToDb();
 
   const app = express();
+  app.set('trust proxy', true)
+  app.use(requestIp.mw())
   app.use(graphqlUploadExpress());
 
   // subscriptions
@@ -44,8 +47,9 @@ const corsOptions = {
     context: async ({ req }) => {
       const token = req.headers.authorization || '';
       const user = await getUser(token);
+
       return {
-        ip: req.socket.remoteAddress,
+        ip: req.clientIp,
         userAgent: req.headers['user-agent'],
         user
       };

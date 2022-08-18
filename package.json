@@ -23,6 +23,7 @@
     "@types/ioredis": "^4.28.5",
     "@types/lodash": "^4.14.176",
     "@types/moment": "^2.13.0",
+    "@types/request-ip": "^0.0.37",
     "@vonage/server-sdk": "^2.11.2",
     "amazon-s3-uri": "^0.1.1",
     "apollo-server": "^3.5.0",
@@ -46,6 +47,7 @@
     "moment": "^2.29.1",
     "mongoose": "^6.0.12",
     "nanoid": "^3.1.30",
+    "request-ip": "^3.3.0",
     "subscriptions-transport-ws": "^0.11.0",
     "twilio": "^3.71.2",
     "typescript": "^4.5.2"

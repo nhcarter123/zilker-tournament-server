@@ -29,11 +29,20 @@ const withAuth = (fn: Function) => (
   return fn(parent, args, context);
 };
 
-const withRateLimit = (fn: Function, limit = 5, interval = 5 * 1000) => async (
+const MINUTE = 60 * 1000;
+const DAY = MINUTE * 60 * 24;
+
+const withRateLimit = (fn: Function) => async (
   parent: void,
   args: void,
   context: Context
 ) => {
+  const shortIntervalQuota = 3;
+  const shortInterval = 30 * MINUTE;
+
+  const longIntervalQuota = 9;
+  const longInterval = DAY;
+
   const serveRequest = new RequestsModel({
     userAgent: context.userAgent,
     ip: context.ip
@@ -41,13 +50,22 @@ const withRateLimit = (fn: Function, limit = 5, interval = 5 * 1000) => async (
 
   await serveRequest.save();
 
-  const recentServerRequests = await RequestsModel.count({
+  const recentLimitedRequests = await RequestsModel.count({
     $or: [{ ip: context.ip }, { userAgent: context.userAgent }],
-    createdAt: { $gte: Date.now() - interval }
+    createdAt: { $gte: Date.now() - shortInterval }
   });
 
-  if (recentServerRequests > limit) {
-    throw new Error('Rate limit exceeded');
+  if (recentLimitedRequests > shortIntervalQuota) {
+    throw new Error('Rate limit exceeded (Short)');
+  }
+
+  const dailyLimitedRequests = await RequestsModel.count({
+    $or: [{ ip: context.ip }, { userAgent: context.userAgent }],
+    createdAt: { $gte: Date.now() - longInterval }
+  });
+
+  if (dailyLimitedRequests > longIntervalQuota) {
+    throw new Error('Rate limit exceeded (Long)');
   }
 
   return fn(parent, args, context);
