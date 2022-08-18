@@ -37,6 +37,7 @@
     "graphql-redis-subscriptions": "^2.4.2",
     "graphql-subscriptions": "^2.0.0",
     "graphql-upload": "^13.0.0",
+    "infobip": "^0.1.0",
     "ioredis": "^4.28.2",
     "jsonwebtoken": "^8.3.0",
     "lodash": "^4.17.21",

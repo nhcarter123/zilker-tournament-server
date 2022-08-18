@@ -17,7 +17,7 @@ import {
 import UserModel from '../user/UserModel';
 import MatchModel from '../match/MatchModel';
 import { Match, MatchResult } from '../match/MatchTypes';
-import { sendText } from '../verificationCode/helpers/twilio';
+import { sendText } from '../verificationCode/helpers/sms';
 import pubsub from '../../pubsub/pubsub';
 import { Subscription, TournamentUpdated } from '../../pubsub/types';
 import { VerifiedContext } from '../TypeDefinitions';

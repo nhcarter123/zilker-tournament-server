@@ -1,6 +1,6 @@
 import UserModel from '../../user/UserModel';
 import { connectToDb } from '../../../db';
-import { sendText } from '../../verificationCode/helpers/twilio';
+import { sendText } from '../../verificationCode/helpers/sms';
 
 import * as dotenv from 'dotenv';
 import TournamentModel from '../TournamentModel';

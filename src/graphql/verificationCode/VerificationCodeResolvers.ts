@@ -2,7 +2,7 @@ import VerificationCodeModel from './VerificationCodeModel';
 import UserModel from '../user/UserModel';
 import { customAlphabet } from 'nanoid/non-secure';
 import { generateToken } from '../utils';
-import { sendText } from './helpers/twilio';
+import { sendText } from './helpers/sms';
 import { User } from '../user/UserTypes';
 import { mapToUser, mapToUserNonNull } from '../../mappers/mappers';
 import crypto from 'crypto';
