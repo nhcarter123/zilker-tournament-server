@@ -63,9 +63,9 @@ const queryTypes: DocumentNode = gql`
 
     # User
     verifyCode(code: String!): User
-    verifyPhone(phone: String!): Boolean!
-    verifyEmail(email: String!, password: String!): Boolean!
-    loginEmail(email: String!, password: String!): User
+    verifyPhone(phone: String!, token: String!): Boolean!
+    verifyEmail(email: String!, password: String!, token: String!): Boolean!
+    loginEmail(email: String!, password: String!, token: String!): User
     updateUserDetails(payload: UpdateUserDetailsPayload!): Boolean!
     uploadPhoto(photo: Upload!): Boolean!
     deletePhoto: Boolean!

@@ -18,6 +18,7 @@ import type {
   GraphQLResponse,
   GraphQLRequestContext
 } from 'apollo-server-types';
+import isbot from 'isbot';
 
 const port = 4000;
 
@@ -44,9 +45,13 @@ const corsOptions = {
 
   const server = new ApolloServer({
     schema,
-    context: async ({ req }) => {
+    context: async ({req}) => {
       const token = req.headers.authorization || '';
       const user = await getUser(token);
+
+      if (isbot(req.headers['user-agent'])) {
+        throw new Error("Suspicious device detected")
+      }
 
       return {
         ip: req.clientIp,

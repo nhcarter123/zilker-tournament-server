@@ -9,6 +9,7 @@ import { Subscription } from '../pubsub/types';
 import { withFilter } from 'graphql-subscriptions';
 import { Context } from './TypeDefinitions';
 import RequestsModel from './verificationCode/ServerRequestModel';
+import axios from 'axios';
 
 type ResolversType = {
   Upload: Object;
@@ -17,6 +18,7 @@ type ResolversType = {
   Subscription: Object;
 };
 
+// todo move these to helpers
 const withAuth = (fn: Function) => (
   parent: void,
   args: void,
@@ -37,18 +39,20 @@ const withRateLimit = (fn: Function) => async (
   args: void,
   context: Context
 ) => {
-  const shortIntervalQuota = 3;
+  const shortIntervalQuota = 4;
   const shortInterval = 30 * MINUTE;
 
   const longIntervalQuota = 9;
   const longInterval = DAY;
 
-  const serveRequest = new RequestsModel({
+  const globalQuota = 500;
+
+  const serverRequest = new RequestsModel({
     userAgent: context.userAgent,
     ip: context.ip
   });
 
-  await serveRequest.save();
+  await serverRequest.save();
 
   const recentLimitedRequests = await RequestsModel.count({
     $or: [{ ip: context.ip }, { userAgent: context.userAgent }],
@@ -66,6 +70,30 @@ const withRateLimit = (fn: Function) => async (
 
   if (dailyLimitedRequests > longIntervalQuota) {
     throw new Error('Rate limit exceeded (Long)');
+  }
+
+  const dailyGlobalRequests = await RequestsModel.count({
+    createdAt: { $gte: Date.now() - longInterval }
+  });
+
+  if (dailyGlobalRequests > globalQuota) {
+    throw new Error('Rate limit exceeded (Global)');
+  }
+
+  return fn(parent, args, context);
+};
+
+const withRecaptcha = (fn: Function) => async (
+  parent: void,
+  args: { token: string },
+  context: Context
+) => {
+  const url = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${args.token}`;
+
+  const response = await axios.get(url);
+
+  if (response.data.score < 0.5) {
+    throw new Error('Suspicious device detected');
   }
 
   return fn(parent, args, context);
@@ -97,10 +125,16 @@ const globalResolvers: ResolversType = {
     updateUserDetails: withAuth(userResolvers.updateUserDetails),
     uploadPhoto: withAuth(userResolvers.uploadPhoto),
     deletePhoto: withAuth(userResolvers.deletePhoto),
-    verifyCode: verificationCodeResolvers.verifyCode,
-    verifyPhone: withRateLimit(verificationCodeResolvers.verifyPhone),
-    verifyEmail: withRateLimit(verificationCodeResolvers.verifyEmail),
-    loginEmail: withRateLimit(verificationCodeResolvers.loginEmail),
+    verifyCode: withRateLimit(verificationCodeResolvers.verifyCode),
+    verifyPhone: withRecaptcha(
+      withRateLimit(verificationCodeResolvers.verifyPhone)
+    ),
+    verifyEmail: withRecaptcha(
+      withRateLimit(verificationCodeResolvers.verifyEmail)
+    ),
+    loginEmail: withRecaptcha(
+      withRateLimit(verificationCodeResolvers.loginEmail)
+    ),
 
     // Tournament
     createTournament: withAuth(tournamentResolvers.createTournament),
