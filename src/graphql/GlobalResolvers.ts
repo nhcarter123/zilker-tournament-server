@@ -31,30 +31,37 @@ const withAuth = (fn: Function) => (
   return fn(parent, args, context);
 };
 
+enum ERequestType {
+  VerifyCode = 'VerifyCode',
+  VerifyPhone = 'VerifyPhone',
+  VerifyEmail = 'VerifyEmail',
+  LoginEmail = 'LoginEmail'
+}
+
 const MINUTE = 60 * 1000;
 const DAY = MINUTE * 60 * 24;
 
-const withRateLimit = (fn: Function) => async (
-  parent: void,
-  args: void,
-  context: Context
-) => {
-  const shortIntervalQuota = 4;
-  const shortInterval = 30 * MINUTE;
-
-  const longIntervalQuota = 9;
+const withRateLimit = (
+  fn: Function,
+  type: ERequestType,
+  shortIntervalQuota: number,
+  longIntervalQuota: number
+) => async (parent: void, args: void, context: Context) => {
+  const shortInterval = 10 * MINUTE;
   const longInterval = DAY;
 
-  const globalQuota = 500;
+  const globalQuota = 1000;
 
   const serverRequest = new RequestsModel({
     userAgent: context.userAgent,
-    ip: context.ip
+    ip: context.ip,
+    type
   });
 
   await serverRequest.save();
 
   const recentLimitedRequests = await RequestsModel.count({
+    type,
     $or: [{ ip: context.ip }, { userAgent: context.userAgent }],
     createdAt: { $gte: Date.now() - shortInterval }
   });
@@ -64,6 +71,7 @@ const withRateLimit = (fn: Function) => async (
   }
 
   const dailyLimitedRequests = await RequestsModel.count({
+    type,
     $or: [{ ip: context.ip }, { userAgent: context.userAgent }],
     createdAt: { $gte: Date.now() - longInterval }
   });
@@ -125,15 +133,35 @@ const globalResolvers: ResolversType = {
     updateUserDetails: withAuth(userResolvers.updateUserDetails),
     uploadPhoto: withAuth(userResolvers.uploadPhoto),
     deletePhoto: withAuth(userResolvers.deletePhoto),
-    verifyCode: withRateLimit(verificationCodeResolvers.verifyCode),
+    verifyCode: withRateLimit(
+      verificationCodeResolvers.verifyCode,
+      ERequestType.VerifyCode,
+      15,
+      35
+    ),
     verifyPhone: withRecaptcha(
-      withRateLimit(verificationCodeResolvers.verifyPhone)
+      withRateLimit(
+        verificationCodeResolvers.verifyPhone,
+        ERequestType.VerifyPhone,
+        8,
+        16
+      )
     ),
     verifyEmail: withRecaptcha(
-      withRateLimit(verificationCodeResolvers.verifyEmail)
+      withRateLimit(
+        verificationCodeResolvers.verifyEmail,
+        ERequestType.VerifyEmail,
+        10,
+        20
+      )
     ),
     loginEmail: withRecaptcha(
-      withRateLimit(verificationCodeResolvers.loginEmail)
+      withRateLimit(
+        verificationCodeResolvers.loginEmail,
+        ERequestType.LoginEmail,
+        5,
+        25
+      )
     ),
 
     // Tournament

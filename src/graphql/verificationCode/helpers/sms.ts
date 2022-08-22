@@ -1,4 +1,4 @@
-import Vonage from '@vonage/server-sdk';
+import Vonage, { NumberInsightLevel } from '@vonage/server-sdk';
 
 const vonage = new Vonage({
   apiKey: process.env.VONAGE_API_KEY || '',
@@ -6,8 +6,22 @@ const vonage = new Vonage({
 });
 
 const from = process.env.VONAGE_PHONE || '';
+const SUPPORTED_COUNTRIES = ['US', 'CA'];
 
 export const sendText = async (body: string, to: string) => {
+  await new Promise((resolve, reject) =>
+    vonage.numberInsight.get(
+      { level: 'basic' as NumberInsightLevel, number: to },
+      (error, result) => {
+        if (SUPPORTED_COUNTRIES.includes(result?.country_code || '')) {
+          resolve(true);
+        } else {
+          reject('Phone country not supported');
+        }
+      }
+    )
+  );
+
   return new Promise((resolve, reject) =>
     vonage.message.sendSms(from, to, body, {}, (err, responseData) => {
       if (err) {
@@ -17,6 +31,8 @@ export const sendText = async (body: string, to: string) => {
           reject('Unable to send text message');
         }
       }
+
+      resolve(true);
     })
   );
 };

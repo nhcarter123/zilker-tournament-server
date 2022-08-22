@@ -14,7 +14,7 @@ type VerifyCodeArgs = {
   code: string;
 };
 
-interface ILoginPhoneArgs {
+interface IVerifyPhoneArgs {
   phone: string;
 }
 
@@ -104,14 +104,14 @@ const resolvers = {
 
   verifyPhone: async (
     _: void,
-    { phone }: ILoginPhoneArgs
+    { phone }: IVerifyPhoneArgs
   ): Promise<boolean> => {
     const code = nanoid();
 
-    // two layers of rate limiting because I am scared
+    // second layer of rate limiting in case of spoofing
     const existingCodesByUser = await VerificationCodeModel.count({ phone });
 
-    if (existingCodesByUser > 3) {
+    if (existingCodesByUser > 6) {
       throw new Error('Rate limit exceeded');
     }
 
@@ -143,12 +143,12 @@ const resolvers = {
       throw new Error('This email is already in use');
     }
 
-    // two layers of rate limiting because I am scared
+    // second layer of rate limiting in case of spoofing
     const existingCodesByUser = await VerificationCodeModel.count({
       email: lowerEmail
     });
 
-    if (existingCodesByUser > 3) {
+    if (existingCodesByUser > 6) {
       throw new Error('Rate limit exceeded');
     }
 

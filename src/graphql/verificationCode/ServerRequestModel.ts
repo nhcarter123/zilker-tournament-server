@@ -3,6 +3,7 @@ import * as mongoose from 'mongoose';
 export interface ServerRequest extends mongoose.Document {
   ip: string;
   clientId: string;
+  type: string;
 }
 
 const Schema = new mongoose.Schema(
@@ -13,6 +14,10 @@ const Schema = new mongoose.Schema(
       required: true
     },
     userAgent: {
+      type: String,
+      required: true
+    },
+    type: {
       type: String,
       required: true
     }
