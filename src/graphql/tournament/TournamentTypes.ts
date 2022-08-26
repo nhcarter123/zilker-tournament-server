@@ -60,7 +60,7 @@ export type Tournament = {
   tiebreakSeed: number;
   config: IConfig;
   standings: Standing[];
-  pairingAlgorithm: string;
+  pairingAlgorithm: EPairingAlgorithm;
   isDeleted: boolean;
   organizationId: string;
   photo?: string;

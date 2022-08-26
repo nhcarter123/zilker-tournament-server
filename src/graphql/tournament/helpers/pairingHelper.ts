@@ -8,7 +8,7 @@ import {
 import { Match, MatchResult } from '../../match/MatchTypes';
 import { User } from '../../user/UserTypes';
 import { getSwissMatches } from './swissPairing';
-import { getRatingMatches } from './ratingPairing';
+import { getKongRatingMatches } from './KongPairing';
 
 export interface IOpponentsMap {
   [id: string]: number;
@@ -285,9 +285,7 @@ const getMatches = (
   boardTiebreakSeed: number,
   byePlayer: Maybe<string>
 ): Match[] => {
-  switch (
-    tournament.pairingAlgorithm as EPairingAlgorithm // can be parsed better
-  ) {
+  switch (tournament.pairingAlgorithm) {
     case EPairingAlgorithm.Swiss:
       return getSwissMatches(
         tournament._id,
@@ -297,13 +295,12 @@ const getMatches = (
         tournament.config.maxPunchDown
       );
     case EPairingAlgorithm.Rating:
-      return getRatingMatches(
+      return getKongRatingMatches(
         tournament._id,
         stats,
         boardTiebreakSeed,
         byePlayer,
-        tournament.config.performanceWeight,
-        tournament.rounds.length
+        tournament.config.performanceWeight
       );
   }
 };
