@@ -352,7 +352,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Micahel',
     lastName: 'Williams',
-    rating: 2800,
+    rating: 580,
     matchesPlayed: 0
   },
   {
@@ -361,7 +361,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Eric',
     lastName: 'Kurtz',
-    rating: 2700,
+    rating: 560,
     matchesPlayed: 0
   },
   {
@@ -370,7 +370,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Vaugn',
     lastName: 'Stone',
-    rating: 2600,
+    rating: 540,
     matchesPlayed: 0
   },
   {
@@ -379,7 +379,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Marc',
     lastName: 'Jiang',
-    rating: 2500,
+    rating: 520,
     matchesPlayed: 0
   },
   {
@@ -388,7 +388,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Tim',
     lastName: 'Mccley',
-    rating: 2200,
+    rating: 500,
     matchesPlayed: 0
   },
 
@@ -398,7 +398,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Micahel',
     lastName: 'Williams',
-    rating: 2056,
+    rating: 480,
     matchesPlayed: 0
   },
   {
@@ -407,7 +407,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Vaugn',
     lastName: 'Stone',
-    rating: 1894,
+    rating: 460,
     matchesPlayed: 0
   },
   {
@@ -416,7 +416,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Alec',
     lastName: 'Carrier',
-    rating: 1756,
+    rating: 450,
     matchesPlayed: 0
   },
   {
@@ -425,14 +425,14 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Bob',
     lastName: 'Suave',
-    rating: 1703,
+    rating: 430,
     matchesPlayed: 0
   },
   {
     _id: '32',
     phone: '+18023242070',
     role: Role.admin,
-    rating: 1620,
+    rating: 410,
     firstName: 'dfdfg',
     lastName: 'dfgdg',
     matchesPlayed: 0
@@ -443,14 +443,14 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Eric',
     lastName: 'Kurtz',
-    rating: 1543,
+    rating: 390,
     matchesPlayed: 0
   },
   {
     _id: '34',
     phone: '+182323',
     role: Role.admin,
-    rating: 1403,
+    rating: 370,
     firstName: 'Nate',
     lastName: 'Carter',
     matchesPlayed: 0
@@ -461,7 +461,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Marc',
     lastName: 'Jiang',
-    rating: 1375,
+    rating: 360,
     matchesPlayed: 0
   },
   {
@@ -470,7 +470,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Jeremy',
     lastName: 'Seagull',
-    rating: 1250,
+    rating: 350,
     matchesPlayed: 0
   },
   {
@@ -479,7 +479,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Tim',
     lastName: 'Mccley',
-    rating: 1222,
+    rating: 330,
     matchesPlayed: 0
   },
   {
@@ -488,7 +488,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Bob',
     lastName: 'Suave',
-    rating: 1134,
+    rating: 220,
     matchesPlayed: 0
   },
   {
@@ -497,7 +497,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Jeremy',
     lastName: 'Seagull',
-    rating: 1043,
+    rating: 210,
     matchesPlayed: 0
   },
   {
@@ -506,14 +506,14 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Amy',
     lastName: 'Smith',
-    rating: 959,
+    rating: 200,
     matchesPlayed: 0
   },
   {
     _id: '41',
     phone: '+18023242070',
     role: Role.admin,
-    rating: 821,
+    rating: 190,
     firstName: 'dfdfg',
     lastName: 'dfgdg',
     matchesPlayed: 0
@@ -522,7 +522,7 @@ const players: User[] = [
     _id: '42',
     phone: '+182323',
     role: Role.admin,
-    rating: 880,
+    rating: 180,
     firstName: 'Nate',
     lastName: 'Carter',
     matchesPlayed: 0
@@ -533,7 +533,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Alec',
     lastName: 'Carrier',
-    rating: 803,
+    rating: 170,
     matchesPlayed: 0
   },
   {
@@ -542,7 +542,7 @@ const players: User[] = [
     role: Role.admin,
     firstName: 'Amy',
     lastName: 'Smith',
-    rating: 600,
+    rating: 160,
     matchesPlayed: 0
   }
 ];

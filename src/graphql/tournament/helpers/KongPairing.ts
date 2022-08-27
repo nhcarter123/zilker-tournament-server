@@ -27,15 +27,19 @@ const canMatchWithPlayer = (
   } else {
     // The rare case that they have played every player at least once
     const minimumPlayedEachOpponent = sortedPlayerIds.reduce(
-      (previousValue, currentValue) => {
-        const timesPlayedOpponent = highestPlayer.opponents[currentValue] || 0;
-        if (timesPlayedOpponent > previousValue) {
-          return previousValue;
+      (previousValue, opponent) => {
+        const timesPlayedOpponent = highestPlayer.opponents[opponent] || 0;
+        if (
+          timesPlayedOpponent < previousValue &&
+          // Do not check that they have played themselves
+          opponent !== highestPlayer.id
+        ) {
+          return timesPlayedOpponent;
         }
 
         return previousValue;
       },
-      0
+      Infinity
     );
 
     if (timesPlayedHighestPlayer <= minimumPlayedEachOpponent) {

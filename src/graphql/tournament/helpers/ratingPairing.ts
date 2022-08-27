@@ -19,7 +19,7 @@ export const getRatingMatches = (
     .map(([id, value]) => ({
       id,
       score: value.score,
-      rating: value.rating + value.pairingScore * 40 * performanceWeight
+      rating: value.rating + value.pairingScore * 25 * performanceWeight
     }))
     .sort((a, b) => b.rating - a.rating)
     .filter(player => player.id !== byePlayer); // Exclude bye player
