@@ -128,7 +128,7 @@ const Schema = new mongoose.Schema(
     pairingAlgorithm: {
       type: String,
       required: true,
-      default: EPairingAlgorithm.Swiss
+      default: EPairingAlgorithm.Rating
     },
     location: {
       type: String

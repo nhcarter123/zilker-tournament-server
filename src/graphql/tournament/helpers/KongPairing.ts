@@ -13,7 +13,7 @@ export interface IPlayerStatsStub {
   [id: string]: IPlayerStub;
 }
 
-const MAX_EXPLORE_NODES = 5;
+const MAX_EXPLORE_NODES = 3;
 
 const canMatchWithPlayer = (
   highestPlayer: IPlayerStub,
@@ -111,13 +111,7 @@ const getNodeScore = (node: INode, players: IPlayerStatsStub) => {
       const playerA = players[a];
       const playerB = players[b];
       if (playerA && playerB) {
-        const timesBPlayedA = playerB.opponents[a] || 0;
-
-        return (
-          previous +
-          Math.pow(playerA.rating - playerB.rating, 2) +
-          100000 * timesBPlayedA
-        );
+        return previous + Math.pow(playerA.rating - playerB.rating, 2);
       }
     }
 
@@ -199,8 +193,8 @@ export const getKongRatingMatches = (
     }
   }
 
-  console.log(bestPairings);
-  console.log(bestScore);
+  // console.log(bestPairings);
+  // console.log(bestScore);
 
   return compact(
     bestPairings.map(([a, b], index) => {

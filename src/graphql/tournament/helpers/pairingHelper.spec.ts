@@ -2,7 +2,9 @@ import { expect } from 'chai';
 
 import {
   createNewRound,
-  getPlayerStats
+  getOptimalNextRatedRound,
+  getPlayerStats,
+  simulateRound
 } from 'graphql/tournament/helpers/pairingHelper';
 import {
   EPairingAlgorithm,
@@ -97,25 +99,11 @@ it('Should pair players using rating based algorithm', () => {
   let stats = getPlayerStats(rounds, players);
 
   const processRound = (round: Round) => {
-    // set winners
-    round.matches = round.matches.map(match =>
-      match.black !== 'bye'
-        ? {
-            ...match,
-            result:
-              match.whiteRating > match.blackRating
-                ? MatchResult.whiteWon
-                : MatchResult.blackWon,
-            completed: true
-          }
-        : match
-    );
-
-    rounds.push(round);
+    rounds.push(simulateRound(round));
     stats = getPlayerStats(rounds, players);
   };
 
-  const round1 = createNewRound(tournament, stats, 0);
+  const round1 = getOptimalNextRatedRound(tournament, rounds, players, 0);
 
   // expect(round1.matches[0]?.white).to.be.equal('618c971dc8725e04b058948d');
   // expect(round1.matches[0]?.black).to.be.equal('618c913ac8725e04b058945c');
@@ -131,17 +119,17 @@ it('Should pair players using rating based algorithm', () => {
   // expect(round1.matches[5]?.black).to.be.equal('bye');
 
   processRound(round1);
-  const round2 = createNewRound(tournament, stats, 0);
+  const round2 = getOptimalNextRatedRound(tournament, rounds, players, 0);
   processRound(round2);
-  const round3 = createNewRound(tournament, stats, 0);
+  const round3 = getOptimalNextRatedRound(tournament, rounds, players, 0);
   processRound(round3);
-  const round4 = createNewRound(tournament, stats, 0);
+  const round4 = getOptimalNextRatedRound(tournament, rounds, players, 0);
   processRound(round4);
-  const round5 = createNewRound(tournament, stats, 0);
+  const round5 = getOptimalNextRatedRound(tournament, rounds, players, 0);
   processRound(round5);
-  const round6 = createNewRound(tournament, stats, 0);
+  const round6 = getOptimalNextRatedRound(tournament, rounds, players, 0);
   processRound(round6);
-  const round7 = createNewRound(tournament, stats, 0);
+  const round7 = getOptimalNextRatedRound(tournament, rounds, players, 0);
 
   console.log('');
 }).timeout(20000);

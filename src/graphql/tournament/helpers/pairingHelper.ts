@@ -9,6 +9,7 @@ import { Match, MatchResult } from '../../match/MatchTypes';
 import { User } from '../../user/UserTypes';
 import { getSwissMatches } from './swissPairing';
 import { getKongRatingMatches } from './KongPairing';
+import { find } from 'lodash';
 
 export interface IOpponentsMap {
   [id: string]: number;
@@ -236,6 +237,80 @@ export const createMatch = (
   };
 };
 
+export const getOptimalNextRatedRound = (
+  tournament: Tournament,
+  rounds: Round[],
+  players: User[],
+  boardTiebreakSeed: number
+): Round => {
+  const simulatedRounds = [...rounds];
+  const remainingRounds = Math.max(
+    tournament.config.totalRounds - simulatedRounds.length,
+    1
+  );
+
+  for (let i = 0; i < remainingRounds; i++) {
+    const stats = getPlayerStats(simulatedRounds, players);
+    const nextRound = createNewRound(tournament, stats, boardTiebreakSeed);
+
+    if (i < remainingRounds - 1) {
+      const simulatedRound = simulateRound(nextRound);
+      simulatedRounds.push(simulatedRound);
+    } else {
+      simulatedRounds.push(nextRound);
+    }
+  }
+
+  const round = simulatedRounds[simulatedRounds.length - 1];
+
+  if (round) {
+    return round;
+  } else {
+    return {
+      _id: new mongoose.Types.ObjectId().toString(),
+      completed: false,
+      matches: []
+    };
+  }
+};
+
+export const simulateRound = (round: Round): Round => {
+  return {
+    ...round,
+    matches: round.matches.map(match =>
+      match.black !== 'bye'
+        ? {
+            ...match,
+            result:
+              match.whiteRating > match.blackRating
+                ? MatchResult.whiteWon
+                : MatchResult.blackWon,
+            completed: true
+          }
+        : match
+    )
+  };
+};
+
+export const getNextRound = (
+  tournament: Tournament,
+  stats: PlayerStats,
+  rounds: Round[],
+  players: User[],
+  boardTiebreakSeed: number
+) => {
+  if (tournament.pairingAlgorithm === EPairingAlgorithm.Rating) {
+    return getOptimalNextRatedRound(
+      tournament,
+      rounds,
+      players,
+      boardTiebreakSeed
+    );
+  }
+
+  return createNewRound(tournament, stats, boardTiebreakSeed);
+};
+
 export const createNewRound = (
   tournament: Tournament,
   stats: PlayerStats, // A bunch of useful info about the players and their performance
@@ -304,6 +379,17 @@ const getMatches = (
       );
   }
 };
+
+export const getRoundsFromTournament = (
+  tournament: Tournament,
+  matches: Match[]
+): Round[] =>
+  tournament.rounds.map(round => ({
+    ...round,
+    matches: round.matches
+      .map(_id => find(matches, match => match._id === _id))
+      .flatMap(v => (v ? [v] : []))
+  }));
 
 export const createStandings = (stats: PlayerStats): Standing[] => {
   return Object.entries(stats)

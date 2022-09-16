@@ -10,9 +10,10 @@ import {
   TournamentWithOrganization
 } from './TournamentTypes';
 import {
-  createNewRound,
   createStandings,
-  getPlayerStats
+  getNextRound,
+  getPlayerStats,
+  getRoundsFromTournament
 } from './helpers/pairingHelper';
 import UserModel from '../user/UserModel';
 import MatchModel from '../match/MatchModel';
@@ -179,7 +180,7 @@ const resolvers = {
     ).then(mapToTournament);
 
     if (tournament) {
-      pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
+      await pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
         tournamentUpdated: { tournament, newRound: false }
       });
     }
@@ -220,7 +221,7 @@ const resolvers = {
       throw new Error('No tournament found!');
     }
 
-    pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
+    await pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
       tournamentUpdated: { tournament, newRound: false }
     });
 
@@ -238,7 +239,7 @@ const resolvers = {
     ).then(mapToTournament);
 
     if (tournament) {
-      pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
+      await pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
         tournamentUpdated: { tournament, newRound: false }
       });
     }
@@ -370,7 +371,7 @@ const resolvers = {
     ).then(mapToTournament);
 
     if (updatedTournament) {
-      pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
+      await pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
         tournamentUpdated: { tournament: updatedTournament, newRound: true }
       });
     }
@@ -436,19 +437,15 @@ const resolvers = {
       _id: { $in: userIds }
     }).then(mapToUsers);
 
-    const rounds: Round[] = tournament.rounds.map((round: RoundPreview) => ({
-      ...round,
-      matches: round.matches
-        .map(_id => find(matches, match => match._id === _id))
-        .flatMap(v => (v ? [v] : []))
-    }));
-
+    const rounds = getRoundsFromTournament(tournament, matches);
     const stats = getPlayerStats(rounds, players);
     const standings = createStandings(stats);
 
-    const nextRound = createNewRound(
+    const nextRound = getNextRound(
       tournament,
       stats,
+      rounds,
+      players,
       tournament.tiebreakSeed + rounds.length
     );
 
@@ -514,7 +511,7 @@ const resolvers = {
     }
 
     if (updatedTournament) {
-      pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
+      await pubsub.publish<TournamentUpdated>(Subscription.TournamentUpdated, {
         tournamentUpdated: { tournament: updatedTournament, newRound }
       });
     }

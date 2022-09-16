@@ -142,7 +142,7 @@ const resolvers = {
       const matchWithHistory = await addHistoryToMatch(updatedMatch)
 
       const matchUpdated = await withUserInfo(matchWithHistory)
-      pubsub.publish<MatchUpdated>(Subscription.MatchUpdated, { matchUpdated });
+      await pubsub.publish<MatchUpdated>(Subscription.MatchUpdated, { matchUpdated });
     }
 
     return true;
