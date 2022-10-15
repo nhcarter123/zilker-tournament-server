@@ -10,6 +10,7 @@ import {
   TournamentWithOrganization
 } from './TournamentTypes';
 import {
+  createNewRound,
   createStandings,
   getNextRound,
   getPlayerStats,
@@ -441,11 +442,18 @@ const resolvers = {
     const stats = getPlayerStats(rounds, players);
     const standings = createStandings(stats);
 
-    const nextRound = getNextRound(
+    // Uncomment for optimal pairings
+    // const nextRound = getNextRound(
+    //   tournament,
+    //   stats,
+    //   rounds,
+    //   players,
+    //   tournament.tiebreakSeed + rounds.length
+    // );
+
+    const nextRound = createNewRound(
       tournament,
       stats,
-      rounds,
-      players,
       tournament.tiebreakSeed + rounds.length
     );
 

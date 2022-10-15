@@ -50,7 +50,7 @@ const withRateLimit = (
   const shortInterval = 10 * MINUTE;
   const longInterval = DAY;
 
-  const globalQuota = 1000;
+  const globalQuota = 1500;
 
   const serverRequest = new RequestsModel({
     userAgent: context.userAgent,
@@ -136,30 +136,30 @@ const globalResolvers: ResolversType = {
     verifyCode: withRateLimit(
       verificationCodeResolvers.verifyCode,
       ERequestType.VerifyCode,
-      15,
-      35
+      20,
+      40
     ),
     verifyPhone: withRecaptcha(
       withRateLimit(
         verificationCodeResolvers.verifyPhone,
         ERequestType.VerifyPhone,
-        8,
-        16
+        15,
+        30
       )
     ),
     verifyEmail: withRecaptcha(
       withRateLimit(
         verificationCodeResolvers.verifyEmail,
         ERequestType.VerifyEmail,
-        10,
-        20
+        15,
+        30
       )
     ),
     loginEmail: withRecaptcha(
       withRateLimit(
         verificationCodeResolvers.loginEmail,
         ERequestType.LoginEmail,
-        5,
+        10,
         25
       )
     ),
