@@ -229,17 +229,30 @@ const resolvers = {
       throw new Error('Challenge not found');
     }
 
-    const isChallengerInAMatch = await MatchModel.findOne({
+    if (challenger._id === context.user._id) {
+      throw new Error('Invalid opponent');
+    }
+
+    const isEitherPlayerInAMatch = await MatchModel.findOne({
       tournamentId: null,
       completed: false,
       $or: [
-        { white: challenger._id },
-        { black: challenger._id }
+        {
+          $or: [
+            { white: context.user._id },
+            { black: context.user._id }
+          ]
+        }, {
+          $or: [
+            { white: challenger._id },
+            { black: challenger._id }
+          ]
+        }
       ]
     });
 
-    if (isChallengerInAMatch) {
-      throw new Error('Challenger is in another match');
+    if (isEitherPlayerInAMatch) {
+      throw new Error('Player in another challenge');
     }
 
     const stats = getPlayerStats([], [challenger, context.user]);
