@@ -14,6 +14,12 @@ export interface User {
   role: Role;
   token?: string;
   organizationId?: string;
+  challenge?: IChallenge;
+}
+
+export interface IChallenge {
+  expiresAt: Date;
+  gameCode: string;
 }
 
 export enum Role {
@@ -34,6 +40,12 @@ const UserTypes: DocumentNode = gql`
     role: Role!
     token: String
     organizationId: String
+    challenge: Challenge
+  }
+
+  type Challenge {
+    expiresAt: Date!
+    gameCode: String!
   }
 
   enum Role {

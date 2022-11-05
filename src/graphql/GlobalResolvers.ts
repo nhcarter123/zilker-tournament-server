@@ -123,6 +123,8 @@ const globalResolvers: ResolversType = {
     // Match
     getMatch: matchResolvers.getMatch,
     getMyMatch: withAuth(matchResolvers.getMyMatch),
+    getMyChallengeMatch: withAuth(matchResolvers.getMyChallengeMatch),
+    getMyMatchHistory: withAuth(matchResolvers.getMyMatchHistory),
 
     // Organization
     getOrganization: withAuth(organizationResolvers.getOrganization),
@@ -130,8 +132,10 @@ const globalResolvers: ResolversType = {
   },
   Mutation: {
     // User
+    logout: withAuth(userResolvers.logout),
     updateUserDetails: withAuth(userResolvers.updateUserDetails),
     uploadPhoto: withAuth(userResolvers.uploadPhoto),
+    refreshChallenge: withAuth(userResolvers.refreshChallenge),
     deletePhoto: withAuth(userResolvers.deletePhoto),
     verifyCode: withRateLimit(
       verificationCodeResolvers.verifyCode,
@@ -176,6 +180,8 @@ const globalResolvers: ResolversType = {
 
     // Match
     updateMatch: withAuth(matchResolvers.updateMatch),
+    joinChallenge: withAuth(matchResolvers.joinChallenge),
+    endChallenge: withAuth(matchResolvers.endChallenge),
 
     // Organization
     createOrganization: withAuth(organizationResolvers.createOrganization),
@@ -196,6 +202,13 @@ const globalResolvers: ResolversType = {
           variables.tournamentIds.includes(
             payload.tournamentUpdated.tournament._id
           )
+      )
+    },
+    challengeUpdated: {
+      subscribe: withFilter(
+        () => pubsub.asyncIterator(Subscription.ChallengeUpdated),
+        (payload, variables) =>
+          variables.hostIds.includes(payload.challengeUpdated.hostId)
       )
     }
   }

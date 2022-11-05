@@ -1,17 +1,19 @@
 import { gql } from 'apollo-server';
 import { DocumentNode } from 'graphql';
 import { User } from '../user/UserTypes';
+import { Tournament } from '../tournament/TournamentTypes';
 
 export enum MatchResult {
-  whiteWon = 'whiteWon',
-  blackWon = 'blackWon',
-  draw = 'draw',
-  didNotStart = 'didNotStart'
+  WhiteWon = 'whiteWon',
+  BlackWon = 'blackWon',
+  Draw = 'draw',
+  DidNotStart = 'didNotStart'
 }
 
 export interface Match {
   _id: string;
-  tournamentId: string;
+  tournamentId: Nullable<string>;
+  hostId: Nullable<string>;
   white: string;
   black: string;
   whiteRating: number;
@@ -22,7 +24,7 @@ export interface Match {
   newBlackRating?: number;
   whiteMatchesPlayed: number;
   blackMatchesPlayed: number;
-  boardNumber: number;
+  boardNumber?: number;
   result: MatchResult;
   completed: boolean;
 }
@@ -32,10 +34,21 @@ export interface MatchWithUserInfo extends Omit<Match, 'white' | 'black'> {
   black: Nullable<User>;
 }
 
+export interface IHistoryResult {
+  tournaments: Tournament[];
+  matches: MatchWithUserInfo[];
+}
+
 const matchType: DocumentNode = gql`
+  type HistoryResult {
+    tournaments: [Tournament!]!
+    matches: [MatchWithUserInfo!]!
+  }
+
   type MatchWithUserInfo {
     _id: String!
-    tournamentId: String!
+    tournamentId: String
+    hostId: String
     white: User
     black: User
     whiteRating: Int!
@@ -46,7 +59,7 @@ const matchType: DocumentNode = gql`
     newBlackRating: Int
     whiteMatchesPlayed: Int!
     blackMatchesPlayed: Int!
-    boardNumber: Int!
+    boardNumber: Int
     result: MatchResult!
     completed: Boolean!
   }

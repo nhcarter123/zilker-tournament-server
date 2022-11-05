@@ -82,6 +82,11 @@ const TournamentType: DocumentNode = gql`
     newRound: Boolean!
   }
 
+  type ChallengeUpdateResult {
+    hostId: String!
+    completed: Boolean!
+  }
+
   enum MatchResult {
     whiteWon
     blackWon

@@ -43,8 +43,8 @@ import { MatchResult } from '../../match/MatchTypes';
 //             ...match,
 //             result:
 //               match.whiteRating > match.blackRating
-//                 ? MatchResult.whiteWon
-//                 : MatchResult.blackWon,
+//                 ? MatchResult.WhiteWon
+//                 : MatchResult.BlackWon,
 //             completed: true
 //           }
 //         : match

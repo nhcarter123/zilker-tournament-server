@@ -27,18 +27,24 @@ const queryTypes: DocumentNode = gql`
   }
 
   type Query {
+    # User
     me: User
     getUser(userId: ID!): User
     getUsers(userIds: [ID!]!, filterTerm: String): [User!]!
 
+    # Tournament
     getMyTournament: Tournament
     getTournaments: [TournamentWithOrganization!]!
     getTournament(tournamentId: ID!): Tournament
 
+    # Match
     getMatch(matchId: ID!): MatchWithUserInfo
     getMyMatch(tournamentId: ID!): MatchWithUserInfo
+    getMyChallengeMatch: MatchWithUserInfo
+    getMyMatchHistory: HistoryResult!
     getRound(tournamentId: ID!, roundId: ID!): RoundWithUserInfo
 
+    # Organization
     getOrganization(organizationId: ID!): Organization
     getOrganizations: [Organization!]!
   }
@@ -53,7 +59,7 @@ const queryTypes: DocumentNode = gql`
     deleteRound(tournamentId: ID!, roundId: ID!): Boolean!
     joinTournament(organizationId: ID!, tournamentId: ID): JoinTournamentResult!
     kickPlayer(tournamentId: ID!, userId: ID!): Boolean!
-    createTournament(name: String!): Boolean!
+    createTournament(name: String!): Tournament
     updateTournament(
       tournamentId: ID!
       payload: UpdateTournamentPayload!
@@ -62,6 +68,8 @@ const queryTypes: DocumentNode = gql`
     deleteTournamentPhoto(tournamentId: ID!): Boolean!
 
     # User
+    logout: Boolean!
+    refreshChallenge: User
     verifyCode(code: String!): User
     verifyPhone(phone: String!, token: String!): Boolean!
     verifyEmail(email: String!, password: String!, token: String!): Boolean!
@@ -71,8 +79,9 @@ const queryTypes: DocumentNode = gql`
     deletePhoto: Boolean!
 
     # Match
+    joinChallenge(gameCode: ID!): Boolean!
+    endChallenge(matchId: ID!): Boolean!
     updateMatch(matchId: ID!, payload: UpdateMatchPayload!): Boolean!
-    deleteMatch(tournamentId: ID!, roundId: ID!, matchId: ID!): Boolean!
 
     # Organization
     createOrganization: Organization!
@@ -85,6 +94,7 @@ const queryTypes: DocumentNode = gql`
   type Subscription {
     matchUpdated(matchIds: [ID!]!): MatchWithUserInfo
     tournamentUpdated(tournamentIds: [ID!]!): TournamentUpdateResult
+    challengeUpdated(hostIds: [ID!]!): ChallengeUpdateResult
   }
 
   schema {

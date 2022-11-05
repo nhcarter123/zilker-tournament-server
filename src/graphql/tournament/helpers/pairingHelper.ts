@@ -63,7 +63,7 @@ export const getPlayerStats = (
     if (round) {
       for (const match of round.matches) {
         switch (match.result) {
-          case MatchResult.whiteWon: {
+          case MatchResult.WhiteWon: {
             const white = playerStats[match.white];
             if (white) {
               white.win += 1;
@@ -75,7 +75,7 @@ export const getPlayerStats = (
             }
             break;
           }
-          case MatchResult.blackWon: {
+          case MatchResult.BlackWon: {
             const white = playerStats[match.white];
             if (white) {
               white.loss += 1;
@@ -87,7 +87,7 @@ export const getPlayerStats = (
             }
             break;
           }
-          case MatchResult.draw: {
+          case MatchResult.Draw: {
             const white = playerStats[match.white];
             if (white) {
               white.draw += 1;
@@ -99,7 +99,7 @@ export const getPlayerStats = (
             }
             break;
           }
-          case MatchResult.didNotStart: {
+          case MatchResult.DidNotStart: {
             const white = playerStats[match.white];
             if (white && match.white !== 'bye') {
               white.bye += 1;
@@ -199,9 +199,10 @@ export const createMatch = (
   playerId: string,
   opponentId: string,
   stats: PlayerStats,
-  boardNumber: number,
-  tournamentId: string,
-  boardTiebreakSeed: number
+  tournamentId: Nullable<string>,
+  hostId: Nullable<string>,
+  boardTiebreakSeed = 0,
+  boardNumber?: number
 ): Match => {
   const player = stats[playerId];
   const opponent = stats[opponentId];
@@ -223,6 +224,7 @@ export const createMatch = (
   return {
     _id: new mongoose.Types.ObjectId().toString(),
     tournamentId,
+    hostId,
     white,
     black,
     whiteScore: 0,
@@ -232,7 +234,7 @@ export const createMatch = (
     whiteMatchesPlayed: (stats[white]?.matchesPlayed || 0) + 1,
     blackMatchesPlayed: (stats[black]?.matchesPlayed || 0) + 1,
     boardNumber,
-    result: MatchResult.didNotStart,
+    result: MatchResult.DidNotStart,
     completed: false
   };
 };
@@ -283,8 +285,8 @@ export const simulateRound = (round: Round): Round => {
             ...match,
             result:
               match.whiteRating > match.blackRating
-                ? MatchResult.whiteWon
-                : MatchResult.blackWon,
+                ? MatchResult.WhiteWon
+                : MatchResult.BlackWon,
             completed: true
           }
         : match
@@ -332,6 +334,7 @@ export const createNewRound = (
     matches.push({
       _id: new mongoose.Types.ObjectId().toString(),
       tournamentId: tournament._id,
+      hostId: null,
       white: byePlayer,
       black: 'bye',
       whiteScore: 0,
@@ -341,7 +344,7 @@ export const createNewRound = (
       whiteMatchesPlayed: stats[byePlayer]?.matchesPlayed || 0,
       blackMatchesPlayed: 0,
       boardNumber: (matches[matches.length - 1]?.boardNumber || 0) + 1,
-      result: MatchResult.didNotStart,
+      result: MatchResult.DidNotStart,
       completed: false
     });
   }

@@ -45,6 +45,14 @@ const Schema = new mongoose.Schema(
     },
     organizationId: {
       type: String
+    },
+    challenge: {
+      expiresAt: {
+        type: Date
+      },
+      gameCode: {
+        type: String
+      }
     }
   },
   {

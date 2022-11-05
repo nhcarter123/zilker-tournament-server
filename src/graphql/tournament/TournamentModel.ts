@@ -26,7 +26,10 @@ const Schema = new mongoose.Schema(
     date: {
       type: Date,
       required: true,
-      default: moment().toDate()
+      default: moment()
+        .startOf('day')
+        .add(36, 'hours')
+        .toDate()
     },
     players: [
       {

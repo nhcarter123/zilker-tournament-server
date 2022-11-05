@@ -119,6 +119,31 @@ const getNodeScore = (node: INode, players: IPlayerStatsStub) => {
   }, 0);
 };
 
+const getPlayerScore = (userIds: string[], stats: PlayerStats): number => {
+  let score = 0;
+
+  const player1 = userIds[0];
+  const player2 = userIds[1];
+
+  if (player1) {
+    const stat = stats[player1];
+
+    if (stat) {
+      score = score + stat.score;
+    }
+  }
+
+  if (player2) {
+    const stat = stats[player2];
+
+    if (stat) {
+      score = score + stat.score;
+    }
+  }
+
+  return score;
+};
+
 export const getKongRatingMatches = (
   tournamentId: string,
   stats: PlayerStats,
@@ -196,6 +221,10 @@ export const getKongRatingMatches = (
   // console.log(bestPairings);
   // console.log(bestScore);
 
+  bestPairings.sort(
+    (a, b) => getPlayerScore(b, stats) - getPlayerScore(a, stats)
+  );
+
   return compact(
     bestPairings.map(([a, b], index) => {
       if (a && b) {
@@ -203,9 +232,10 @@ export const getKongRatingMatches = (
           a,
           b,
           stats,
-          index + 1,
           tournamentId,
-          boardTiebreakSeed + index + 1
+          null,
+          boardTiebreakSeed + index + 1,
+          index + 1
         );
       }
     })

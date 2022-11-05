@@ -6,11 +6,11 @@ const getKFactor = (matchCount: number) => {
 
 const getResultPoints = (matchResult: MatchResult, isWhite: boolean) => {
   switch (matchResult) {
-    case MatchResult.whiteWon:
+    case MatchResult.WhiteWon:
       return isWhite ? 1 : 0;
-    case MatchResult.draw:
+    case MatchResult.Draw:
       return 0.5;
-    case MatchResult.blackWon:
+    case MatchResult.BlackWon:
     default:
       return isWhite ? 0 : 1;
   }

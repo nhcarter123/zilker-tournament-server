@@ -12,7 +12,6 @@ import {
 import {
   createNewRound,
   createStandings,
-  getNextRound,
   getPlayerStats,
   getRoundsFromTournament
 } from './helpers/pairingHelper';
@@ -149,7 +148,7 @@ const resolvers = {
     _: void,
     { name }: CreateTournamentArgs,
     context: VerifiedContext
-  ): Promise<boolean> => {
+  ): Promise<Nullable<Tournament>> => {
     const tournamentsCreatedRecently = await TournamentModel.count({
       createdAt: {
         $gte: new Date(new Date().getTime() - 20 * 60 * 1000)
@@ -162,12 +161,12 @@ const resolvers = {
 
     const tournament = new TournamentModel({
       name,
-      organizationId: context.user.organizationId
+      organizationId: context.user.organizationId || 'missing'
     });
 
     await tournament.save();
 
-    return true;
+    return mapToTournament(tournament);
   },
 
   updateTournament: async (
@@ -273,9 +272,11 @@ const resolvers = {
     const matches = await MatchModel.find({ _id: { $in: round.matches } }).then(
       mapToMatches
     );
-    const userIds = matches
-      .flatMap(match => [match.white, match.black])
-      .filter(id => id !== 'bye');
+    const userIds = uniq(
+      matches
+        .flatMap(match => [match.white, match.black])
+        .filter(id => id !== 'bye')
+    );
 
     const users = await UserModel.find({ _id: { $in: userIds } }).then(
       mapToUsers
@@ -408,7 +409,7 @@ const resolvers = {
             { result: { $exists: false } }
           ]
         },
-        { $set: { result: MatchResult.didNotStart } }
+        { $set: { result: MatchResult.DidNotStart } }
       );
 
       // complete all rounds

@@ -77,7 +77,7 @@ const resolvers = {
     });
 
     const token = generateToken(
-      user?.phone || verificationCode.phone || verificationCode.email
+      user?.phone || verificationCode.phone || verificationCode.email || ''
     );
 
     if (user) {
@@ -98,6 +98,9 @@ const resolvers = {
 
       await user.save();
     }
+
+    // add new token to user
+    user.token = token;
 
     return mapToUserNonNull(user);
   },

@@ -9,32 +9,32 @@ const from = process.env.VONAGE_PHONE || '';
 const SUPPORTED_COUNTRIES = ['US', 'CA'];
 
 export const sendText = async (body: string, to: string) => {
-  await new Promise((resolve, reject) =>
-    vonage.numberInsight.get(
-      { level: 'basic' as NumberInsightLevel, number: to },
-      (error, result) => {
-        if (SUPPORTED_COUNTRIES.includes(result?.country_code || '')) {
-          resolve(true);
-        } else {
-          reject('Phone country not supported');
-        }
-      }
-    )
-  );
-
-  return new Promise((resolve, reject) =>
-    vonage.message.sendSms(from, to, body, {}, (err, responseData) => {
-      if (err) {
-        reject('Unable to send text message');
-      } else if (responseData.messages[0]) {
-        if (responseData.messages[0]['status'] !== '0') {
-          reject('Unable to send text message');
-        }
-      }
-
-      resolve(true);
-    })
-  );
+  // await new Promise((resolve, reject) =>
+  //   vonage.numberInsight.get(
+  //     { level: 'basic' as NumberInsightLevel, number: to },
+  //     (error, result) => {
+  //       if (SUPPORTED_COUNTRIES.includes(result?.country_code || '')) {
+  //         resolve(true);
+  //       } else {
+  //         reject('Phone country not supported');
+  //       }
+  //     }
+  //   )
+  // );
+  //
+  // return new Promise((resolve, reject) =>
+  //   vonage.message.sendSms(from, to, body, {}, (err, responseData) => {
+  //     if (err) {
+  //       reject('Unable to send text message');
+  //     } else if (responseData.messages[0]) {
+  //       if (responseData.messages[0]['status'] !== '0') {
+  //         reject('Unable to send text message');
+  //       }
+  //     }
+  //
+  //     resolve(true);
+  //   })
+  // );
 };
 
 // import * as infopib from 'infobip';

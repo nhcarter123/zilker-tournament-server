@@ -153,9 +153,10 @@ export const getSwissMatches = (
             player.id,
             opponent.id,
             stats,
-            boardNumber,
             tournamentId,
-            boardTiebreakSeed + boardNumber
+            null,
+            boardTiebreakSeed + boardNumber,
+            boardNumber
           )
         );
       }

@@ -8,8 +8,10 @@ export interface MatchMongo extends Omit<Match, '_id'>, mongoose.Document {
 const Schema = new mongoose.Schema(
   {
     tournamentId: {
-      type: String,
-      required: true
+      type: String
+    },
+    hostId: {
+      type: String
     },
     white: {
       type: String,
@@ -52,13 +54,12 @@ const Schema = new mongoose.Schema(
       type: Number
     },
     boardNumber: {
-      type: Number,
-      required: true
+      type: Number
     },
     result: {
       type: String,
       required: true,
-      default: MatchResult.didNotStart
+      default: MatchResult.DidNotStart
     },
     completed: {
       type: Boolean,
