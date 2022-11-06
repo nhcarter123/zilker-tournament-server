@@ -29,6 +29,7 @@ const queryTypes: DocumentNode = gql`
   type Query {
     # User
     me: User
+    getMyStats: IStatsResult!
     getUser(userId: ID!): User
     getUsers(userIds: [ID!]!, filterTerm: String): [User!]!
 

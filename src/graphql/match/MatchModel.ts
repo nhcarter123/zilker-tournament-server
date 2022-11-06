@@ -3,6 +3,7 @@ import { Match, MatchResult } from './MatchTypes';
 
 export interface MatchMongo extends Omit<Match, '_id'>, mongoose.Document {
   _id: mongoose.Types.ObjectId;
+  createdAt: Date;
 }
 
 const Schema = new mongoose.Schema(

@@ -27,6 +27,16 @@ export enum Role {
   admin = 'admin'
 }
 
+export interface IDataPoint {
+  label: string;
+  value: number;
+}
+
+export interface IStatsResult {
+  ratingOverTime: IDataPoint[];
+  totalGames: number;
+}
+
 const UserTypes: DocumentNode = gql`
   type User {
     _id: String
@@ -46,6 +56,16 @@ const UserTypes: DocumentNode = gql`
   type Challenge {
     expiresAt: Date!
     gameCode: String!
+  }
+
+  type IDataPoint {
+    label: String!
+    value: Int!
+  }
+
+  type IStatsResult {
+    ratingOverTime: [IDataPoint!]!
+    totalGames: Int!
   }
 
   enum Role {

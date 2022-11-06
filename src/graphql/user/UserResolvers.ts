@@ -1,12 +1,14 @@
 import { FileUpload } from 'graphql-upload';
 import UserModel from './UserModel';
 import type { Context, VerifiedContext } from '../TypeDefinitions';
-import { IChallenge, User } from './UserTypes';
+import { IChallenge, IDataPoint, IStatsResult, User } from './UserTypes';
 import { mapToUser, mapToUsers } from '../../mappers/mappers';
 import AmazonS3URI from 'amazon-s3-uri';
 import { deletePhoto, uploadPhoto } from '../../aws/s3';
 import { customAlphabet } from 'nanoid/non-secure';
 import moment from 'moment';
+import MatchModel  from '../match/MatchModel';
+import { uniq } from 'lodash';
 
 const nanoid = customAlphabet('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ', 4);
 
@@ -29,10 +31,14 @@ type GetUsersArgs = {
   filterTerm?: string,
 };
 
-const generateChallenge = (): IChallenge =>( {
-    expiresAt: moment().add(5, 'minutes').toDate(),
-    gameCode: nanoid()
-})
+interface ITimeline {
+  [key: number]: IDataPoint
+}
+
+const generateChallenge = (): IChallenge => ({
+  expiresAt: moment().add(5, 'minutes').toDate(),
+  gameCode: nanoid()
+});
 
 const resolvers = {
   // Query
@@ -55,20 +61,79 @@ const resolvers = {
     return UserModel.find(query).then(mapToUsers);
   },
 
+  getMyStats: async (_: void, _args: void, context: VerifiedContext): Promise<IStatsResult> => {
+    const user = context.user;
+
+    const matches = await MatchModel.find({
+      completed: true,
+      $or: [
+        { white: user._id },
+        { black: user._id }
+      ]
+    }).sort({ createdAt: 1 });
+
+    const uniqueRatings = uniq(matches.map(match => match.white === user._id ? match.whiteRating : match.blackRating)).length
+
+    const samples = uniqueRatings < 3 ? 2 : 50;
+    const ratingOverTime: IDataPoint[] = [];
+    const timeline: ITimeline = {};
+
+    const oldestMatch = matches[0];
+    const newestMatch = matches[matches.length - 1];
+
+    if (oldestMatch && newestMatch) {
+      const oldest = moment(oldestMatch.createdAt);
+      const newest = moment(newestMatch.createdAt);
+
+      const timeScale = newest.diff(oldest);
+      const interval = timeScale / samples;
+
+      matches.forEach(match => {
+        const difference = moment(match.createdAt).diff(moment(oldestMatch.createdAt), 'ms');
+        const rounded = Math.round(difference / interval) * interval;
+
+        timeline[Math.trunc(rounded)] = {
+          label: moment(match.createdAt).format('MMM'),
+          value: match.white === user._id ? match.whiteRating : match.blackRating
+        };
+      });
+
+      let lastRating = 1500
+      for (let i = 0; i < samples; i++) {
+        const dataPoint = timeline[Math.trunc(interval * i)];
+
+        if (dataPoint) {
+          lastRating = dataPoint.value
+          ratingOverTime.push(dataPoint);
+        } else {
+          ratingOverTime.push({
+            label: oldest.add(interval * i, 'ms').format('MMM'),
+            value: lastRating
+          });
+        }
+      }
+    }
+
+    return {
+      totalGames: 0,
+      ratingOverTime
+    };
+  },
+
   // Mutation
   logout: async (_: void, args: void, context: VerifiedContext): Promise<boolean> => {
-    await UserModel.findOneAndUpdate({ _id: context.user._id }, { token: null })
+    await UserModel.findOneAndUpdate({ _id: context.user._id }, { token: null });
 
-    return true
+    return true;
   },
 
   refreshChallenge: async (_: void, _args: void, context: VerifiedContext): Promise<Nullable<User>> => {
-    const expiresAt = context.user.challenge?.expiresAt || moment().subtract(1, 'day')
-    const isExpired = moment().isAfter(expiresAt)
+    const expiresAt = context.user.challenge?.expiresAt || moment().subtract(1, 'day');
+    const isExpired = moment().isAfter(expiresAt);
 
-    const challenge: IChallenge = (isExpired || !context.user.challenge) ? generateChallenge() : context.user.challenge
+    const challenge: IChallenge = (isExpired || !context.user.challenge) ? generateChallenge() : context.user.challenge;
 
-    return UserModel.findOneAndUpdate({ _id: context.user._id }, { challenge }, { new: true }).then(mapToUser)
+    return UserModel.findOneAndUpdate({ _id: context.user._id }, { challenge }, { new: true }).then(mapToUser);
   },
 
   updateUserDetails: async (_: void, {

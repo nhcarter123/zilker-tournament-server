@@ -113,6 +113,7 @@ const globalResolvers: ResolversType = {
     // User
     me: userResolvers.me,
     getUsers: userResolvers.getUsers,
+    getMyStats: userResolvers.getMyStats,
 
     // Tournament
     getMyTournament: withAuth(tournamentResolvers.getMyTournament),
