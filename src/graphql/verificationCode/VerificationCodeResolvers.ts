@@ -108,7 +108,7 @@ const resolvers = {
   verifyPhone: async (
     _: void,
     { phone }: IVerifyPhoneArgs
-  ): Promise<boolean> => {
+  ): Promise<{code: string}> => {
     const code = nanoid();
 
     // second layer of rate limiting in case of spoofing
@@ -125,9 +125,11 @@ const resolvers = {
 
     await verificationCode.save();
 
-    await sendText(`Verification code: ${code}. Zilker Chess.`, phone);
+    // await sendText(`Verification code: ${code}. Zilker Chess.`, phone);
 
-    return true;
+    return {
+      code
+    };
   },
 
   verifyEmail: async (

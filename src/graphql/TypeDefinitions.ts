@@ -25,6 +25,10 @@ const queryTypes: DocumentNode = gql`
     mimetype: String!
     encoding: String!
   }
+  
+  type CodeResponse {
+    code: String!
+  }
 
   type Query {
     # User
@@ -72,7 +76,7 @@ const queryTypes: DocumentNode = gql`
     logout: Boolean!
     refreshChallenge: User
     verifyCode(code: String!): User
-    verifyPhone(phone: String!, token: String!): Boolean!
+    verifyPhone(phone: String!, token: String!): CodeResponse!
     verifyEmail(email: String!, password: String!, token: String!): Boolean!
     loginEmail(email: String!, password: String!, token: String!): User
     updateUserDetails(payload: UpdateUserDetailsPayload!): Boolean!

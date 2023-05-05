@@ -47,7 +47,7 @@ const withRateLimit = (
   shortIntervalQuota: number,
   longIntervalQuota: number
 ) => async (parent: void, args: void, context: Context) => {
-  const shortInterval = 10 * MINUTE;
+  const shortInterval = 5 * MINUTE;
   const longInterval = DAY;
 
   const globalQuota = 1500;
@@ -141,31 +141,31 @@ const globalResolvers: ResolversType = {
     verifyCode: withRateLimit(
       verificationCodeResolvers.verifyCode,
       ERequestType.VerifyCode,
-      20,
-      40
+      50,
+      100
     ),
     verifyPhone: withRecaptcha(
       withRateLimit(
         verificationCodeResolvers.verifyPhone,
         ERequestType.VerifyPhone,
-        15,
-        30
+        50,
+        100
       )
     ),
     verifyEmail: withRecaptcha(
       withRateLimit(
         verificationCodeResolvers.verifyEmail,
         ERequestType.VerifyEmail,
-        15,
-        30
+        50,
+        100
       )
     ),
     loginEmail: withRecaptcha(
       withRateLimit(
         verificationCodeResolvers.loginEmail,
         ERequestType.LoginEmail,
-        10,
-        25
+        50,
+        100
       )
     ),
 
