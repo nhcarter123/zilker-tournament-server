@@ -36,7 +36,6 @@
     "dotenv": "^16.0.1",
     "express": "^4.17.1",
     "graphql": "^16.0.1",
-    "graphql-mongoose-subscriptions": "^1.0.18",
     "graphql-redis-subscriptions": "^2.7.0",
     "graphql-subscriptions": "^3.0.0",
     "graphql-upload": "^13.0.0",
@@ -55,9 +54,10 @@
     "typescript": "^4.5.2"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node build/server.js",
     "start:dev": "ts-node-dev --files src/server.ts",
     "build": "tsc",
+    "postinstall": "npm run build",
     "text:players": "NODE_PATH=./src ts-mocha -p tsconfig.json src/graphql/tournament/helpers/textNotification.spec.ts",
     "test": "NODE_PATH=./src ts-mocha -p tsconfig.json src/**/*.spec.ts"
   }
