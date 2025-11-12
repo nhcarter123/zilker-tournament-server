@@ -54,7 +54,7 @@
     "typescript": "^4.5.2"
   },
   "scripts": {
-    "start": "node build/server.js",
+    "start": "node server.js",
     "start:dev": "ts-node-dev --files src/server.ts",
     "build": "tsc",
     "postinstall": "npm run build",
